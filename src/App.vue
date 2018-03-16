@@ -1,15 +1,20 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
+    <nav-bar></nav-bar>
     <router-view/>
   </div>
 </template>
 
 <script>
+import NavBar from '@/components/NavBar'
 export default {
   name: 'App',
+  components: {
+    NavBar
+  },
   created () {
     console.log(this.$store);
+    console.log(this.$api);
   }
 }
 </script>
@@ -21,6 +26,7 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin: 0;
+  padding: 0;
 }
 </style>
