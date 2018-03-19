@@ -25,7 +25,7 @@ export default {
 
 <style>
 #map-container {
-  height: 750px;
+  height: calc(100vh - 62px);
   width:100%;
 }
 </style>
