@@ -10,6 +10,7 @@
     active-text-color="#ffd04b">
     <el-menu-item index="/">safety</el-menu-item>
     <el-menu-item index="/list">探索</el-menu-item>
+    <el-menu-item index="/library">图库</el-menu-item>
     <li class="search">
       <el-input placeholder="请输入内容" v-model="search" class="input-with-select">
         <el-button slot="append" icon="el-icon-search"></el-button>
@@ -43,49 +44,71 @@
         </span>
       </el-dialog>
     </li>
-    <el-menu-item index="/signup" class="sign">注册</el-menu-item>
-    <el-menu-item index="/signin" class="sign">登录</el-menu-item>
+    <template v-if="user">
+      <el-menu-item index="6" class="sign" @click="heandleExit">注销</el-menu-item>
+      <el-submenu index="5" class="sign">
+        <span slot="title"> {{ user.getUsername() }} </span>
+        <el-menu-item index="5-1">个人中心</el-menu-item>
+        <el-menu-item index="5-2">发布文章</el-menu-item>
+        <el-menu-item index="5-3">消息</el-menu-item>
+      </el-submenu>
+    </template>
+    <template v-else>
+      <el-menu-item index="/signup" class="sign">注册</el-menu-item>
+      <el-menu-item index="/signin" class="sign">登录</el-menu-item>
+    </template>
   </el-menu>
 </template>
 
-
 <script>
-  export default {
-    data() {
-      return {
-        active: '/',
-        search: null,
-        dialogVisible: false,
-        fileList: []
-      };
+import { mapState, mapActions } from 'vuex'
+export default {
+  data() {
+    return {
+      active: '/',
+      search: null,
+      dialogVisible: false,
+      fileList: []
+    };
+  },
+  computed: mapState(['user']),
+  methods: {
+    handleSelect(key, keyPath) {
+      console.log(key, keyPath);
     },
-    methods: {
-      handleSelect(key, keyPath) {
-        console.log(key, keyPath);
-      },
-      handleChange() {
-
-      },
-      handleUpload() {
-        // 取得上传的文件列表
-        let files = this.$refs.upload.uploadFiles
-        files = files.filter(file => {return file.status === 'ready'})
-        .forEach((f, i)=> {
-          let file = new this.$api.SDK.File('test', f.raw)
-          file.save()
-          .then(file => {
-            f.status = 'success'
-            // 文件保存成功
-            console.log(file.url());
-          })
-          .catch(error => {
-            console.error(error);
-          })
+    handleChange() {
+      //
+    },
+    ...mapActions(['exit']),
+    heandleExit() {
+      this.exit();
+      this.$message.success('成功退出');
+    },
+    handleUpload() {
+      // 取得上传的文件列表
+      let files = this.$refs.upload.uploadFiles
+      files = files.filter(file => {return file.status === 'ready'})
+      .forEach(f => {
+        let file = new this.$api.SDK.File('test', f.raw)
+        file.save({
+          onprogress:function (e)  {
+            f.percentage = e.percent
+            f.status = 'uploading'
+            // { loaded: 1234, total: 2468, percent: 50 }
+          },
         })
-        console.log(this.$refs.upload.uploadFiles)
-      },
-    }
+        .then(file => {
+          f.status = 'success';
+          // 文件保存成功
+          // f.url = file.url();
+        })
+        .catch(error => {
+          console.error(error);
+        })
+      })
+    },
   }
+}
 </script>
 
 <style scoped>

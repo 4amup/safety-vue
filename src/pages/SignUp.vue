@@ -89,16 +89,6 @@ export default {
           user.setPassword(this.user.pwd)
           user.setEmail(this.user.email)
 
-          // user.signUp().then(function (loginedUser) {
-          //   this.$store.commit('setUser', loginUser) // 保存到 Vuex 中
-          //   this.$router.go(-1) // 回到上一页
-          //   this.$message.success("注册成功！")
-          // }, function (error) {
-          //   this.$message({
-          //     message: `${error.rawMessage}`,
-          //     type: 'error'
-          //   })
-          // });
           user.signUp().then((loginUser) => {
             this.$store.commit('setUser', loginUser) // 保存到 Vuex 中
             this.$router.go(-1) // 回到上一页

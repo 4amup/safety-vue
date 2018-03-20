@@ -84,8 +84,12 @@
 </template>
 
 <script>
+// import TestUpload from '@/components/TestUpload'
 export default {
   name: 'HelloWorld',
+  components: {
+    // TestUpload
+  },
   data () {
     return {
       msg: 'Welcome to Your Vue.js App'
