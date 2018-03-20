@@ -18,13 +18,27 @@
     <li class="ask">
       <el-button type="primary" icon="el-icon-upload" @click="dialogVisible = true">库</el-button>
       <el-dialog
-        title="提示"
+        title="图库"
         :visible.sync="dialogVisible"
-        width="30%"
-        :before-close="handleClose">
-        <span>这是一段信息</span>
+        width="40%">
+        <el-upload
+          :http-request="handleUpload"
+          class="upload-demo"
+          drag
+          ref="upload"
+          list-type="picture"
+          :file-list="fileList"
+          :on-change="handleChange"
+          action="https://jsonplaceholder.typicode.com/posts/"
+          multiple
+          :auto-upload="false">
+          <i class="el-icon-upload"></i>
+          <div class="el-upload__text">将文件拖到此处，或<em>选取文件</em></div>
+          <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
+        </el-upload>
         <span slot="footer" class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="success" @click="handleUpload">上传到服务器</el-button>
           <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
         </span>
       </el-dialog>
@@ -41,53 +55,35 @@
       return {
         active: '/',
         search: null,
-        dialogVisible: false
+        dialogVisible: false,
+        fileList: []
       };
     },
     methods: {
       handleSelect(key, keyPath) {
         console.log(key, keyPath);
       },
-      handleClick() {
-        console.log('click');
-        const h = this.$createElement;
-        this.$msgbox({
-          title: '图库',
-          message: h('p', null, [
-            h('span', null, '内容可以是 '),
-            h('i', { style: 'color: teal' }, 'VNode')
-          ]),
-          showCancelButton: true,
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          beforeClose: (action, instance, done) => {
-            if (action === 'confirm') {
-              instance.confirmButtonLoading = true;
-              instance.confirmButtonText = '执行中...';
-              setTimeout(() => {
-                done();
-                setTimeout(() => {
-                  instance.confirmButtonLoading = false;
-                }, 300);
-              }, 3000);
-            } else {
-              done();
-            }
-          }
-        }).then(action => {
-          this.$message({
-            type: 'info',
-            message: 'action: ' + action
-          });
-        });
+      handleChange() {
+
       },
-      handleClose(done) {
-        this.$confirm('确认关闭？')
-          .then(_ => {
-            done();
+      handleUpload() {
+        // 取得上传的文件列表
+        let files = this.$refs.upload.uploadFiles
+        files = files.filter(file => {return file.status === 'ready'})
+        .forEach((f, i)=> {
+          let file = new this.$api.SDK.File('test', f.raw)
+          file.save()
+          .then(file => {
+            f.status = 'success'
+            // 文件保存成功
+            console.log(file.url());
           })
-          .catch(_ => {});
-      }
+          .catch(error => {
+            console.error(error);
+          })
+        })
+        console.log(this.$refs.upload.uploadFiles)
+      },
     }
   }
 </script>
