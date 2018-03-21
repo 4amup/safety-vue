@@ -7,6 +7,7 @@
     @select="handleSelect"
     background-color="#545c64"
     text-color="#fff"
+    menu-trigger="click"
     active-text-color="#ffd04b">
     <el-menu-item index="/">safety</el-menu-item>
     <el-menu-item index="/list">探索</el-menu-item>
@@ -15,6 +16,15 @@
       <el-input placeholder="请输入内容" v-model="search" class="input-with-select">
         <el-button slot="append" icon="el-icon-search"></el-button>
       </el-input>
+    </li>
+    <li class="todo">
+      <el-button type="primary" @click="dialogVi = true">todo</el-button>
+      <el-dialog
+        title="图库"
+        :visible.sync="dialogVi"
+        width="50%">
+        <todo></todo>
+      </el-dialog>
     </li>
     <li class="ask">
       <el-button type="primary" icon="el-icon-upload" @click="dialogVisible = true">库</el-button>
@@ -45,13 +55,14 @@
       </el-dialog>
     </li>
     <template v-if="user">
-      <el-menu-item index="6" class="sign" @click="heandleExit">注销</el-menu-item>
       <el-submenu index="5" class="sign">
         <span slot="title"> {{ user.getUsername() }} </span>
         <el-menu-item index="5-1">个人中心</el-menu-item>
         <el-menu-item index="5-2">发布文章</el-menu-item>
         <el-menu-item index="5-3">消息</el-menu-item>
+        <el-menu-item index="5-3"  @click="heandleExit">注销</el-menu-item>
       </el-submenu>
+      <el-menu-item index="6" class="sign notification"><i class="el-icon-bell"></i>提醒</el-menu-item>
     </template>
     <template v-else>
       <el-menu-item index="/signup" class="sign">注册</el-menu-item>
@@ -62,14 +73,19 @@
 
 <script>
 import { mapState, mapActions } from 'vuex'
+import Todo from '@/components/Todo'
 export default {
   data() {
     return {
       active: '/',
       search: null,
       dialogVisible: false,
+      dialogVi: false,
       fileList: []
     };
+  },
+  components: {
+    Todo
   },
   computed: mapState(['user']),
   methods: {
@@ -94,7 +110,6 @@ export default {
           onprogress:function (e)  {
             f.percentage = e.percent
             f.status = 'uploading'
-            // { loaded: 1234, total: 2468, percent: 50 }
           },
         })
         .then(file => {
@@ -118,7 +133,7 @@ export default {
   .search {
     width: 300px;
   }
-  .ask, .search {
+  .ask, .search, .todo {
     float: left;
     height: 60px;
     line-height: 60px;

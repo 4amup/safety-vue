@@ -3,7 +3,7 @@
     <h1>登录</h1>
 
     <div class="from-panel">
-      <el-form label-position="left" ref="form" label-width="80px" :rules="rules" :model="user">
+      <el-form label-position="left" ref="form" label-width="80px" :rules="rules" :model="user" @keyup.native.enter="submitForm('form')">
         <el-form-item label="用户名" prop="name">
           <el-input v-model="user.name"></el-input>
         </el-form-item>
