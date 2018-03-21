@@ -1,4 +1,3 @@
-
 <template>
   <el-menu
     :default-active=active
@@ -18,17 +17,22 @@
       </el-input>
     </li>
     <li class="todo">
-      <el-button type="primary" @click="dialogVi = true">todo</el-button>
+      <el-button type="primary" @click="dialogVisible = true">todo</el-button>
       <el-dialog
-        title="图库"
-        :visible.sync="dialogVi"
-        width="50%">
+        title="提交"
+        :visible.sync="dialogVisible"
+        width="50%"
+        center>
         <todo></todo>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="dialogVisible = false">取 消</el-button>
+          <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
+        </span>
       </el-dialog>
     </li>
     <li class="ask">
-      <el-button type="primary" icon="el-icon-upload" @click="dialogVisible = true">库</el-button>
-      <el-dialog
+      <!-- <el-button type="primary" icon="el-icon-upload" @click="dialogVisible = true">库</el-button> -->
+      <!-- <el-dialog
         title="图库"
         :visible.sync="dialogVisible"
         width="40%">
@@ -52,7 +56,7 @@
           <el-button type="success" @click="handleUpload">上传到服务器</el-button>
           <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
         </span>
-      </el-dialog>
+      </el-dialog> -->
     </li>
     <template v-if="user">
       <el-submenu index="5" class="sign">

@@ -1,51 +1,80 @@
 <template>
-  <div>
-    <el-upload
+  <el-form ref="form" :model="form" label-position="left" label-width="70px" size="mini">
+    <el-form-item label="位置">
+      <el-cascader
+        v-model="form.location"
+        placeholder="试试搜索：管二"
+        :options="options"
+        filterable
+        clearable
+        change-on-select>
+      </el-cascader>
+    </el-form-item>
+
+    <el-form-item label="问题图片">
+      <el-upload
+        class="todo-uploader"
+        action="https://jsonplaceholder.typicode.com/posts/"
+        list-type="picture-card"
+        multiple
+        :limit='2'
+        :on-remove="handleRemove">
+        <i class="el-icon-plus"></i>
+      </el-upload>
+    </el-form-item>
+
+    <el-form-item label="整改图片" v-show="form.status">
+      <el-upload
+      class="todo-uploader"
       action="https://jsonplaceholder.typicode.com/posts/"
       list-type="picture-card"
-      :on-preview="handlePictureCardPreview"
+      multiple
+      :limit='2'
       :on-remove="handleRemove">
       <i class="el-icon-plus"></i>
     </el-upload>
-    <el-form ref="form" :model="form" label-position="left" size="mini">
-      <el-form-item label="位置">
-        <i class="el-icon-location-outline"></i>
-        <el-cascader
-          placeholder="试试搜索：管二"
-          :options="options"
-          filterable
-          change-on-select
-        ></el-cascader>
-      </el-form-item>
-      <el-form-item label="描述">
-        <el-autocomplete
-          class="inline-input"
-          v-model="state2"
-          :fetch-suggestions="querySearch"
-          placeholder="请输入内容"
-          :trigger-on-focus="false"
-          @select="handleSelect"
-        ></el-autocomplete>
-      </el-form-item>
-      <el-form-item label="整改情况">
-        <el-switch
-          style="display: block"
-          v-model="value4"
-          active-color="#13ce66"
-          inactive-color="#ff4949"
-          active-text="已整改"
-          inactive-text="未整改">
-        </el-switch>
-      </el-form-item>
-    </el-form>
-  </div>
+    </el-form-item>
+
+    <el-form-item label="描述">
+      <el-input
+        type="textarea"
+        autosize
+        placeholder="必填，请输入内容"
+        v-model="form.content">
+      </el-input>
+    </el-form-item>
+
+    <el-form-item label="措施" v-show="form.status">
+      <el-input
+        type="textarea"
+        autosize
+        placeholder="非必填项，有图片即可"
+        v-model="form.reform">
+      </el-input>
+    </el-form-item>
+
+    <el-form-item label="">
+      <el-switch
+        style="display: block"
+        v-model="form.status"
+        active-color="#13ce66"
+        inactive-color="#ff4949"
+        active-text="已整改"
+        inactive-text="未整改">
+      </el-switch>
+    </el-form-item>
+  </el-form>
 </template>
 <script>
   export default {
     data() {
       return {
-        value4: true,
-        dialogImageUrl: '',
+        form: {
+          content: '',
+          status: false,
+          location: '',
+          reform: ''
+        },
         dialogVisible: false,
         options: [{
           value: 'zhinan',
@@ -255,3 +284,30 @@
     }
   }
 </script>
+
+<style>
+  .todo-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    width: 50px;
+    height: 50px;
+    font-size: 28px;
+    display: inline-block;
+    line-height: 50px;
+    text-align: center;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .todo-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+  .el-upload-list--picture-card .el-upload-list__item {
+    width: 50px;
+    height: 50px;
+  }
+  .el-cascader--mini {
+    width: 100%;
+  }
+</style>
+
