@@ -14,8 +14,8 @@ export default {
     init() {
       const map = new AMap.Map('container', {
         resizeEnable: true,
-        zoom:11,
-        center: [116.397428, 39.90923]
+        zoom:16,
+        center: [126.678551,45.715461]
       });
       console.log(map)
     }

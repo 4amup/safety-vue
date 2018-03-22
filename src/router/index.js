@@ -3,6 +3,7 @@ import Router from 'vue-router'
 import HelloWorld from '@/pages/HelloWorld'
 import List from '@/pages/List'
 import Library from '@/pages/Library'
+import Tree from '@/pages/Tree'
 import SignUp from '@/pages/SignUp'
 import SignIn from '@/pages/SignIn'
 
@@ -24,6 +25,11 @@ export default new Router({
       path: '/library',
       name: 'Library',
       component: Library
+    },
+    {
+      path: '/tree',
+      name: 'Tree',
+      component: Tree
     },
     {
       path: '/signup',

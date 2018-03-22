@@ -11,6 +11,7 @@
     <el-menu-item index="/">safety</el-menu-item>
     <el-menu-item index="/list">探索</el-menu-item>
     <el-menu-item index="/library">图库</el-menu-item>
+    <el-menu-item index="/tree">组织</el-menu-item>
     <li class="search">
       <el-input placeholder="请输入内容" v-model="search" class="input-with-select">
         <el-button slot="append" icon="el-icon-search"></el-button>

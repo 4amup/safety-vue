@@ -1,5 +1,16 @@
 <template>
-  <el-form ref="form" :model="form" label-position="left" label-width="70px" size="mini">
+  <el-form ref="form" :model="form" label-position="left" label-width="70px">
+    <el-form-item label="">
+      <el-switch
+        style="display: block"
+        v-model="form.status"
+        active-color="#13ce66"
+        inactive-color="#ff4949"
+        active-text="已整改"
+        inactive-text="未整改">
+      </el-switch>
+    </el-form-item>
+
     <el-form-item label="位置">
       <el-cascader
         v-model="form.location"
@@ -17,7 +28,7 @@
         action="https://jsonplaceholder.typicode.com/posts/"
         list-type="picture-card"
         multiple
-        :limit='2'
+        :limit='3'
         :on-remove="handleRemove">
         <i class="el-icon-plus"></i>
       </el-upload>
@@ -29,7 +40,7 @@
       action="https://jsonplaceholder.typicode.com/posts/"
       list-type="picture-card"
       multiple
-      :limit='2'
+      :limit='3'
       :on-remove="handleRemove">
       <i class="el-icon-plus"></i>
     </el-upload>
@@ -37,7 +48,7 @@
 
     <el-form-item label="描述">
       <el-input
-        type="textarea"
+        clearable
         autosize
         placeholder="必填，请输入内容"
         v-model="form.content">
@@ -46,23 +57,13 @@
 
     <el-form-item label="措施" v-show="form.status">
       <el-input
-        type="textarea"
+        clearable="true"
         autosize
         placeholder="非必填项，有图片即可"
         v-model="form.reform">
       </el-input>
     </el-form-item>
 
-    <el-form-item label="">
-      <el-switch
-        style="display: block"
-        v-model="form.status"
-        active-color="#13ce66"
-        inactive-color="#ff4949"
-        active-text="已整改"
-        inactive-text="未整改">
-      </el-switch>
-    </el-form-item>
   </el-form>
 </template>
 <script>
