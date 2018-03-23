@@ -10,20 +10,28 @@
         :highlight-current="true"
         :expand-on-click-node="false">
         <span class="custom-tree-node" slot-scope="{ node, data }">
-          <span v-show="!editFlag">{{ node.label }}</span>
+
+          <!-- 在非编辑状态时，选择原节点 -->
+          <span v-show=!data.editing>{{ node.label }}</span>
+
+          <!-- 使用自定义指令和ref暂时解决了编辑问题，后面可以使用原生input来解决el-input的问题 -->
           <el-input
+            :ref="data.id"
+            v-show="data.editing"
+            v-focus="data.editing"
             class="edit"
-            v-if="editFlag"
             size="mini"
             placeholder="请输入内容"
-            v-model="node.label">
+            :value=node.label
+            clearable>
           </el-input>
+
           <span>
             <el-button
               type="text"
               size="mini"
-              @click="() => setCurrentNode(node)">
-              {{editFlag ? '完成' : '编辑'}}
+              @click="() => edit(data)">
+              {{data.editing ? '完成' : '编辑'}}
             </el-button>
             <el-button
               type="text"
@@ -86,20 +94,12 @@
       }];
       return {
         data5: JSON.parse(JSON.stringify(data)),
-        editFlag: false
       }
     },
 
     methods: {
-      setCurrentNode(node) {
-        this.editFlag ? this.editFlag=false : this.editFlag=true
-        // node.data.label = 'yes'
-      },
-      // editNodeLabel(object, node, component) {
-      //   // console.log(object, node, component)
-      // },
       append(data) {
-        const newChild = { id: id++, label: 'testtest', children: [] };
+        const newChild = { id: id++, label: '默认节点', children: [] };
         if (!data.children) {
           this.$set(data, 'children', []);
         }
@@ -107,11 +107,36 @@
       },
 
       remove(node, data) {
+        console.log(node, '\n')
+        console.log(data, '\n')
         const parent = node.parent;
         const children = parent.data.children || parent.data;
         const index = children.findIndex(d => d.id === data.id);
         children.splice(index, 1);
       },
+
+      edit(data) {
+        console.log(data.editing)
+        // 点击编辑或完成按钮后，需要切换当前状态
+        if(data['editing'] === undefined) { // 当前如果是非编辑状态
+          this.$set(data, 'editing', true) // 则将状态切换成编辑状态
+          // this.$refs[data.id].value=data.label // 然后将当前label的值
+        } else if (data['editing'] === true) { // 如果是编辑状态
+          this.$delete(data, 'editing') // 则将编辑状态删除，改成非编辑状态
+          this.$set(data, 'label', this.$refs[data.id].$el.children[0].value)
+          //  console.log(this.$refs[data.id].value)
+        }
+      }
+    },
+
+    // 自定义指令实现input的focus触发 https://cn.vuejs.org/v2/guide/custom-directive.html
+    directives: {
+      focus: {
+        // 指令的定义
+        update: function (el) {
+          el.children[0].focus()
+        }
+      }
     }
   };
 </script>
@@ -120,12 +145,19 @@
   .tree {
     width: 400px;
   }
+  .edit {
+    /* height: 1px; */
+    padding: 0;
+  }
+  .el-input--mini .el-input__inner {
+    height: 24px;
+  }
   .custom-tree-node {
-    flex: 1;
+    flex: 2;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 14px;
+    font-size: 15px;
     padding-right: 8px;
   }
 </style>
