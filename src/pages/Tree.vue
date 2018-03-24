@@ -1,13 +1,13 @@
 <template>
   <div class="container">
-    <h1>tree</h1>
-
     <div class="tree">
+      <h2>厂区关系图</h2>
       <el-tree
         :data="data5"
         node-key="id"
         default-expand-all
-        :highlight-current="true"
+        highlight-current
+        :show-checkbox='checkbox'
         :expand-on-click-node="false">
         <span class="custom-tree-node" slot-scope="{ node, data }">
 
@@ -49,6 +49,77 @@
         </span>
       </el-tree>
     </div>
+
+    <div class="transfer">
+      <el-transfer
+        v-model="value3"
+        filterable
+        :left-default-checked="[2, 3]"
+        :right-default-checked="[1]"
+        :render-content="renderFunc"
+        :titles="['Source', 'Target']"
+        :button-texts="['到左边', '到右边']"
+        :format="{
+          noChecked: '${total}',
+          hasChecked: '${checked}/${total}'
+        }"
+        @change="handleChange"
+        :data="data">
+        <el-button class="transfer-footer" slot="left-footer" size="small">操作</el-button>
+        <el-button class="transfer-footer" slot="right-footer" size="small">操作</el-button>
+      </el-transfer>
+    </div>
+
+    <div class="tree">
+      <h2>单位关系图</h2>
+      <el-tree
+        :data="data5"
+        node-key="id"
+        default-expand-all
+        highlight-current
+        :show-checkbox='checkbox'
+        :expand-on-click-node="false">
+        <span class="custom-tree-node" slot-scope="{ node, data }">
+
+          <!-- 在非编辑状态时，选择原节点 -->
+          <span v-show=!data.editing>{{ node.label }}</span>
+
+          <!-- 使用自定义指令和ref暂时解决了编辑问题，后面可以使用原生input来解决el-input的问题 -->
+          <el-input
+            :ref="data.id"
+            v-show="data.editing"
+            v-focus="data.editing"
+            class="edit"
+            size="mini"
+            placeholder="请输入内容"
+            :value=node.label
+            clearable>
+          </el-input>
+
+          <span>
+            <el-button
+              type="text"
+              size="mini"
+              @click="() => edit(data)">
+              {{data.editing ? '完成' : '编辑'}}
+            </el-button>
+            <el-button
+              type="text"
+              size="mini"
+              @click="() => append(data)">
+              添加
+            </el-button>
+            <el-button
+              type="text"
+              size="mini"
+              @click="() => remove(node, data)">
+              删除
+            </el-button>
+          </span>
+        </span>
+      </el-tree>
+    </div>
+
   </div>
 </template>
 
@@ -142,8 +213,12 @@
 </script>
 
 <style>
+  .container {
+    display: flex;
+    flex-direction: row;
+  }
   .tree {
-    width: 400px;
+    width: 300px;
   }
   .edit {
     /* height: 1px; */
