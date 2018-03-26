@@ -100,9 +100,22 @@
           if(this.appending) {
             let form = this.$refs.appendingForm.model
             this.data = []
-            this.data.push(form)
 
-            this.appending = false
+            let Factory = this.$api.SDK.Object.extend('Factory')
+            let factory = new Factory()
+            factory.set('label', form.label);
+            factory.set('path', null);
+            factory.save().then(factory => {
+              console.log('objectId:', factory.id)
+
+              // 前端显示
+              this.data.push(form)
+              this.appending = false
+            })
+            .catch(error => {
+              console.error(error);
+            })
+
           } else {
             // 设置为添加状态
             this.appending = true
