@@ -7,7 +7,7 @@
         @current-change="selectCurrentNode"
         :data="data"
         :default-expanded-keys="[0]"
-        node-key="id"
+        node-key="objectId"
         default-expand-all
         :highlight-current="true"
         :check-strictly="false"
@@ -25,18 +25,16 @@
       <p v-if="!currentNode">无数据，选中后，显示该节点数据</p>
 
       <div v-else v-show="!this.editing">
-        <p><span>节点id：</span>{{currentNode.id}}</p>
+        <p><span>节点id：</span>{{currentNode.objectId}}</p>
         <p><span>节点label：</span>{{currentNode.label}}</p>
         <p><span>节点名称：</span>{{currentNode.name}}</p>
         <p><span>节点路径：</span>{{currentNode.path}}</p>
+        <p><span>节点类型：</span>{{currentNode.type}}</p>
         <p><span>子节点数量：</span>{{currentNode.children ? currentNode.children.length : '无子节点'}}</p>
 
       </div>
 
       <el-form v-if="this.editing" ref="editingForm" :model="currentNode" label-position="right" label-width="70px">
-        <el-form-item label="ID：">
-          <el-input v-model="currentNode.id"></el-input>
-        </el-form-item>
         <el-form-item label="label：">
           <el-input v-model="currentNode.label"></el-input>
         </el-form-item>
@@ -49,9 +47,6 @@
       </el-form>
 
       <el-form v-if="this.appending" ref="appendingForm" :model="childNode" label-position="right" label-width="70px">
-        <el-form-item label="ID：">
-          <el-input v-model="childNode.id"></el-input>
-        </el-form-item>
         <el-form-item label="label：">
           <el-input v-model="childNode.label"></el-input>
         </el-form-item>
@@ -75,17 +70,39 @@
 
   export default {
     data() {
-      const data = [];
       return {
-        data: JSON.parse(JSON.stringify(data)),
+        data: [],
         editing: false,
         appending: false,
         currentNode: null,
         childNode: {
-          id: id++,
-          label: '默认节点'
-        }
+          label: '默认节点',
+          type: null,
+        },
+        type: ['Factory', 'Workshop', 'Stride', 'Area']
       }
+    },
+
+    mounted() {
+      let query = new this.$api.SDK.Query('Factory')
+      let root=[]
+      query.first().then(factory => {
+        root.push(factory.toJSON())
+
+        let F = this.$api.SDK.Object.createWithoutData('Factory', factory.id);
+        let q = new this.$api.SDK.Query('Workshop');
+        q.equalTo('dependent', F);
+        q.find().then(function (workshops) {
+          root[0].children = []
+          workshops.forEach(function (w, i, o) {
+            console.log(w.get('label'))
+
+            root[0].children.push(w.toJSON());
+          });
+
+        });
+      })
+      this.data = root
     },
 
     methods: {
@@ -104,9 +121,10 @@
             let Factory = this.$api.SDK.Object.extend('Factory')
             let factory = new Factory()
             factory.set('label', form.label);
+            factory.set('type', 'Factory');
             factory.set('path', null);
             factory.save().then(factory => {
-              console.log('objectId:', factory.id)
+              console.log('objectId:', factory.objectId)
 
               // 前端显示
               this.data.push(form)
@@ -123,25 +141,36 @@
           return
         }
 
-        // 首先确认父节点的存在
-        let parantNode = this.$refs.tree.getCurrentNode()
+        // 首先确认父节点选中与否
+        let parentNode = this.$refs.tree.getCurrentNode()
 
-        if(!parantNode) {
+        if(!parentNode) {
           this.$message('无选中节点，请单击节点后编辑')
           return
         }
 
-        if(this.appending) {
+        if(this.appending) { // 在添加状态
           let form = this.$refs.appendingForm.model
           let newChild = form
 
-          this.$refs.tree.append(newChild, parantNode)
+          let parent = this.$api.SDK.Object.createWithoutData(parentNode.type, parentNode.objectId);
+          let index = this.type.findIndex(e => e === parentNode.type)
+          let childType = this.type[index+1]
+          console.log(childType)
+          let child = new this.$api.SDK.Object(childType);
+          child.set('label', form.label);
+          child.set('dependent', parent);
+          child.save()
+          .then(() => {
+            this.$refs.tree.append(newChild, parentNode)
 
-          this.childNode = {
-            id: id++,
-            label: '默认节点'
-          }
-          this.appending = false
+            this.childNode = {
+              label: '默认节点'
+            }
+            this.appending = false
+          });
+
+
         } else {
           // 设置为添加状态
           this.appending = true
@@ -158,8 +187,17 @@
 
         if(this.editing) {
           let form = this.$refs.editingForm.model
-          node = form;
-          this.editing = false
+
+          let factory = this.$api.SDK.Object.createWithoutData('Factory', node.objectId);
+          // 修改属性
+          factory.set('label', form.label)
+          // 保存到云端
+          factory.save()
+          .then(() => {
+            node = form
+            console.log(`${node.objectId}更新成功`)
+            this.editing = false
+          });
         } else {
           // 设置为编辑状态
           this.editing = true
@@ -174,7 +212,15 @@
           return
         }
 
-        this.$refs.tree.remove(node)
+        // 判断当前节点类型
+        let factory = this.$api.SDK.Object.createWithoutData(node.type, node.objectId);
+        factory.destroy().then(function (success) {
+          // 删除成功
+          console.log(`${node.objectId}删除成功`)
+          this.$refs.tree.remove(node)
+        }, function (error) {
+          // 删除失败
+        });
       },
     },
 
