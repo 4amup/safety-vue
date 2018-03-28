@@ -1,5 +1,9 @@
 <template>
-  <el-form ref="form" :model="form" label-position="left" label-width="70px">
+  <el-form ref="form"
+    :rules="rules"
+    :model="form"
+    label-position="left"
+    label-width="70px">
     <el-form-item label="">
       <el-switch
         style="display: block"
@@ -11,34 +15,43 @@
       </el-switch>
     </el-form-item>
 
-    <el-form-item label="位置">
+    <el-form-item label="位置" prop="location">
       <el-cascader
         v-model="form.location"
         placeholder="试试搜索：管二"
+        :separator='`/`'
+        :value="selected"
         :options="options"
+        :props="props"
         filterable
         clearable
         change-on-select>
       </el-cascader>
     </el-form-item>
 
-    <el-form-item label="问题图片">
+    <el-form-item label="问题图片" prop="imagesUrl">
       <el-upload
+        ref="upload"
+        :http-request="handleUpload"
+        :on-change="handleChange"
+        :on-remove="handleRemove"
+        :before-upload="beforeImagesUpload"
+        :file-list="fileList"
         class="todo-uploader"
-        action="https://jsonplaceholder.typicode.com/posts/"
+        action=""
         list-type="picture-card"
         multiple
-        :limit='3'
-        :on-remove="handleRemove">
+        :limit='3'>
         <i class="el-icon-plus"></i>
       </el-upload>
     </el-form-item>
 
-    <el-form-item label="整改图片" v-show="form.status">
+    <el-form-item label="整改图片" v-if="form.status">
       <el-upload
       class="todo-uploader"
       action="https://jsonplaceholder.typicode.com/posts/"
       list-type="picture-card"
+      :file-list="reformFieldList"
       multiple
       :limit='3'
       :on-remove="handleRemove">
@@ -46,241 +59,223 @@
     </el-upload>
     </el-form-item>
 
-    <el-form-item label="描述">
+    <el-form-item label="描述" prop="content">
       <el-input
         clearable
         autosize
-        placeholder="必填，请输入内容"
+        placeholder="违章现象、隐患、6S现场问题"
         v-model="form.content">
       </el-input>
     </el-form-item>
 
     <el-form-item label="措施" v-show="form.status">
       <el-input
-        clearable="true"
+        clearable
         autosize
         placeholder="非必填项，有图片即可"
         v-model="form.reform">
       </el-input>
-    </el-form-item>
 
+    </el-form-item>
+      <el-form-item>
+      <el-button type="primary" @click="submitForm('form')">创建</el-button>
+      <el-button @click="resetForm('form')">重置</el-button>
+      <el-button @click="handleUpload">传图</el-button>
+    </el-form-item>
   </el-form>
 </template>
 <script>
   export default {
     data() {
-      return {
-        form: {
-          content: '',
-          status: false,
-          location: '',
-          reform: ''
-        },
-        dialogVisible: false,
-        options: [{
-          value: 'zhinan',
-          label: '指南',
-          children: [{
-            value: 'shejiyuanze',
-            label: '设计原则',
-            children: [{
-              value: 'yizhi',
-              label: '一致'
-            }, {
-              value: 'fankui',
-              label: '反馈'
-            }, {
-              value: 'xiaolv',
-              label: '效率'
-            }, {
-              value: 'kekong',
-              label: '可控'
-            }]
+      let data = [{
+        "id": 1,
+        "label": "一厂房",
+        "children": [{
+          "id": 4,
+          "label": "一跨",
+          "children": [{
+            "id": 9,
+            "label": "装焊区"
           }, {
-            value: 'daohang',
-            label: '导航',
-            children: [{
-              value: 'cexiangdaohang',
-              label: '侧向导航'
-            }, {
-              value: 'dingbudaohang',
-              label: '顶部导航'
-            }]
-          }]
-        }, {
-          value: 'zujian',
-          label: '组件',
-          children: [{
-            value: 'basic',
-            label: 'Basic',
-            children: [{
-              value: 'layout',
-              label: 'Layout 布局'
-            }, {
-              value: 'color',
-              label: 'Color 色彩'
-            }, {
-              value: 'typography',
-              label: 'Typography 字体'
-            }, {
-              value: 'icon',
-              label: 'Icon 图标'
-            }, {
-              value: 'button',
-              label: 'Button 按钮'
-            }]
-          }, {
-            value: 'form',
-            label: 'Form',
-            children: [{
-              value: 'radio',
-              label: 'Radio 单选框'
-            }, {
-              value: 'checkbox',
-              label: 'Checkbox 多选框'
-            }, {
-              value: 'input',
-              label: 'Input 输入框'
-            }, {
-              value: 'input-number',
-              label: 'InputNumber 计数器'
-            }, {
-              value: 'select',
-              label: 'Select 选择器'
-            }, {
-              value: 'cascader',
-              label: 'Cascader 级联选择器'
-            }, {
-              value: 'switch',
-              label: 'Switch 开关'
-            }, {
-              value: 'slider',
-              label: 'Slider 滑块'
-            }, {
-              value: 'time-picker',
-              label: 'TimePicker 时间选择器'
-            }, {
-              value: 'date-picker',
-              label: 'DatePicker 日期选择器'
-            }, {
-              value: 'datetime-picker',
-              label: 'DateTimePicker 日期时间选择器'
-            }, {
-              value: 'upload',
-              label: 'Upload 上传'
-            }, {
-              value: 'rate',
-              label: 'Rate 评分'
-            }, {
-              value: 'form',
-              label: 'Form 表单'
-            }]
-          }, {
-            value: 'data',
-            label: 'Data',
-            children: [{
-              value: 'table',
-              label: 'Table 表格'
-            }, {
-              value: 'tag',
-              label: 'Tag 标签'
-            }, {
-              value: 'progress',
-              label: 'Progress 进度条'
-            }, {
-              value: 'tree',
-              label: 'Tree 树形控件'
-            }, {
-              value: 'pagination',
-              label: 'Pagination 分页'
-            }, {
-              value: 'badge',
-              label: 'Badge 标记'
-            }]
-          }, {
-            value: 'notice',
-            label: 'Notice',
-            children: [{
-              value: 'alert',
-              label: 'Alert 警告'
-            }, {
-              value: 'loading',
-              label: 'Loading 加载'
-            }, {
-              value: 'message',
-              label: 'Message 消息提示'
-            }, {
-              value: 'message-box',
-              label: 'MessageBox 弹框'
-            }, {
-              value: 'notification',
-              label: 'Notification 通知'
-            }]
-          }, {
-            value: 'navigation',
-            label: 'Navigation',
-            children: [{
-              value: 'menu',
-              label: 'NavMenu 导航菜单'
-            }, {
-              value: 'tabs',
-              label: 'Tabs 标签页'
-            }, {
-              value: 'breadcrumb',
-              label: 'Breadcrumb 面包屑'
-            }, {
-              value: 'dropdown',
-              label: 'Dropdown 下拉菜单'
-            }, {
-              value: 'steps',
-              label: 'Steps 步骤条'
-            }]
-          }, {
-            value: 'others',
-            label: 'Others',
-            children: [{
-              value: 'dialog',
-              label: 'Dialog 对话框'
-            }, {
-              value: 'tooltip',
-              label: 'Tooltip 文字提示'
-            }, {
-              value: 'popover',
-              label: 'Popover 弹出框'
-            }, {
-              value: 'card',
-              label: 'Card 卡片'
-            }, {
-              value: 'carousel',
-              label: 'Carousel 走马灯'
-            }, {
-              value: 'collapse',
-              label: 'Collapse 折叠面板'
-            }]
-          }]
-        }, {
-          value: 'ziyuan',
-          label: '资源',
-          children: [{
-            value: 'axure',
-            label: 'Axure Components'
-          }, {
-            value: 'sketch',
-            label: 'Sketch Templates'
-          }, {
-            value: 'jiaohu',
-            label: '组件交互文档'
+            "id": 10,
+            "label": "倒角区"
           }]
         }]
+      }, {
+        "id": 2,
+        "label": "二厂房",
+        "children": [{
+          "id": 5,
+          "label": "二跨",
+          "children": [{
+            "id": 9,
+            "label": "装焊区"
+          }, {
+            "id": 10,
+            "label": "倒角区"
+          }]
+        }, {
+          "id": 6,
+          "label": "三跨",
+          "children": [{
+            "id": 9,
+            "label": "机加区"
+          }, {
+            "id": 10,
+            "label": "倒角区"
+          }]
+        }]
+      }, {
+        "id": 3,
+        "label": "六厂房",
+        "children": [{
+          "id": 7,
+          "label": "一跨",
+          "children": [{
+            "id": 9,
+            "label": "装焊区"
+          }, {
+            "id": 10,
+            "label": "倒角区"
+          }]
+        }, {
+          "id": 8,
+          "label": "二跨",
+          "children": [{
+            "id": 9,
+            "label": "装焊区"
+          }, {
+            "id": 10,
+            "label": "倒角区"
+          }]
+        }]
+      }];
+      let validateImagesUrl = (rule, value, callback) => {
+        if (this.fileList.length === 0) {
+          callback(new Error('请上传图片'));
+        }
+      };
+      return {
+        form: {
+          status: false,
+          location: [],
+          imagesUrl: [], // 图片路径数组
+          content: '', // 描述的文字或语音地址的链接
+
+          reformContent: '', //整改的描述或语音链接地址
+          rImagesUrl: [],
+
+        },
+        rules: {
+          content: [
+            { type: 'string', required: true, message: '请描述事项情况', trigger: 'blur'}
+          ],
+          location: [
+            { type: 'array', required: true, message: '位置信息', trigger: 'change'}
+          ],
+
+          // imagesUrl: [
+          //   { validator: validateImagesUrl, trigger: 'change' }
+          // ],
+        },
+        dialogVisible: false,
+        options: JSON.parse(JSON.stringify(data)),
+        props: {
+          value: 'label',
+          label: 'label',
+          children: 'children'
+        },
+        selected: null,
+        fileList: [], // 问题图片列表
+        reformFieldList: [] // 整改图片列表
       };
     },
+    computed: {
+      h: function() {
+        return this.fileList.map(f => f.url)
+      },
+    },
     methods: {
+      handleUpload() {
+        let files = this.$refs.upload.uploadFiles
+        files = files.filter(file => {return file.status === 'ready'})
+        .forEach(f => {
+          // 文件名命名规则是问题描述，如果多张图片，分别为xx-1.jpg、xx-2.jpg、
+          let file = new this.$api.SDK.File('test', f.raw)
+          file.save({
+            onprogress:function (e)  {
+              f.percentage = e.percent
+              f.status = 'uploading'
+            },
+          })
+          .then(file => {
+            f.status = 'success';
+            // 文件保存成功
+            f.url = file.url();
+            this.form.imagesUrl.push(f.url)
+          })
+          .catch(error => {
+            console.error(error);
+          })
+        })
+
+      },
+      // upload(files,) {
+
+      // },
+      handleChange(file, fileList) {
+        this.fileList = fileList
+      },
+      beforeImagesUpload(file) {
+        const isJPG = file.type === 'image/jpeg';
+        const isLt2M = file.size / 1024 / 1024 < 2;
+
+        if (!isJPG) {
+          this.$message.error('上传头像图片只能是 JPG 格式!');
+        }
+        if (!isLt2M) {
+          this.$message.error('上传头像图片大小不能超过 2MB!');
+        }
+        return isJPG && isLt2M;
+      },
       handleRemove(file, fileList) {
-        console.log(file, fileList);
+        this.fileList = fileList
       },
       handlePictureCardPreview(file) {
         this.dialogImageUrl = file.url;
         this.dialogVisible = true;
+      },
+
+      // 表单相关
+      submitForm(formName) {
+        this.$refs[formName].validate((valid) => {
+          if (valid) {
+            // 保存到云端的逻辑
+            let Todo = this.$api.SDK.Object.extend('Todo')
+            let todo = new Todo()
+            todo.set('content', this.form.content);
+            todo.set('status', this.form.status);
+            todo.set('location', this.form.location);
+            todo.set('imagesUrl', this.form.imagesUrl);
+            todo.save().then(todo => {
+              console.log('objectId:', todo.id)
+              this.$message(`ID为${todo.id}的问题上传成功！`);
+            })
+            .catch(error => {
+              console.error(error);
+            })
+          } else {
+            console.log('error submit!!');
+            return false;
+          }
+        });
+      },
+      resetForm(formName) {
+        // 先清除表单信息
+        this.$refs[formName].resetFields();
+        // 然后将图片列表清空
+        this.fileList = []
+        this.reformFieldList = []
       }
     }
   }

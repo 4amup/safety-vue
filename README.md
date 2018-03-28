@@ -5,6 +5,10 @@
 
 * [x] 定义部门组织关系，使用element树形图，接入todo的options选项中，异步加载或同步
 
+* [ ] 添加按钮举报不合适的todo提交，由管理员确认，后端直接删除
+
+* [ ] 分类功能
+
 * [ ] 使用穿梭框实现部门和作业区域的绑定
 
 * [ ] 使用exif.js获取图片元信息，直接获取位置信息，后台或前台实现
@@ -30,3 +34,28 @@
 * [ ] 发布的todo，由机器在后台实现更加合理的表达，机器学习。
 
 * [ ] 树形结构储存的思路：拟采用[方法三](https://blog.csdn.net/codepython/article/details/49615297)。
+
+## 数据表设计
+
+1. Todo（待办事项）
+
+|     字段     |    类型    |                   说明                   |
+|:------------:|:----------:|:----------------------------------------:|
+|    content   |   String   |  事项描述，文字直接存，语音保存文件地址  |
+| reformContent|   String   |  事项描述，文字直接存，语音保存文件地址  |
+|    images    |   AVFile   |        与事项相关的图片或语音信息        |
+|  imagesUrl   |   String   |           与事项有关的图片地址           |
+|    rImages   |   AVFile   |        与事项相关的图片或语音信息        |
+|  rImagesUrl  |   AVFile   |        与事项相关的图片或语音信息        |
+|   location   |   String   |             处理该事项的地点             |
+|   priority   |   Number   |      0 优先级最高，最迫切需要完成。      |
+|   reminders  |    Array   |            设置提醒日期和时间            |
+|    status    |   Number   |      0 未完成，1 已完成，2 复查完毕      |
+|     views    |   Number   |           该事项被浏览过的次数           |
+| whereCreated | AVGeoPoint |         该事项被创建时的地理定位         |
+|  whenCreated |    Date    | 该事项发生的时间，采用照片拍摄时间或自选  |
+|  creater     |    Pointer | 该事项的创建者，指向_User               |
+|  transactor  |    Pointer | 该事项的整改图片上传者，指向_User        |
+|  checker     |    Pointer | 该事项的检查者，指向_User               |
+|  department  |    Pointer | 该事项属地单位                         |
+

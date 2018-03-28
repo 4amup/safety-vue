@@ -25,10 +25,10 @@
         width="50%"
         center>
         <todo></todo>
-        <span slot="footer" class="dialog-footer">
+        <!-- <span slot="footer" class="dialog-footer">
           <el-button @click="dialogVisible = false">取 消</el-button>
           <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
-        </span>
+        </span> -->
       </el-dialog>
     </li>
     <li class="ask">

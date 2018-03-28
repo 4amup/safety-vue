@@ -1,0 +1,63 @@
+[{
+	"id": 1,
+	"label": "一厂房",
+	"children": [{
+		"id": 4,
+		"label": "一跨",
+		"children": [{
+			"id": 9,
+			"label": "装焊区"
+		}, {
+			"id": 10,
+			"label": "倒角区"
+		}]
+	}]
+}, {
+	"id": 2,
+	"label": "二厂房",
+	"children": [{
+		"id": 5,
+    "label": "二跨",
+    "children": [{
+			"id": 9,
+			"label": "装焊区"
+		}, {
+			"id": 10,
+			"label": "倒角区"
+		}]
+	}, {
+		"id": 6,
+    "label": "三跨",
+    "children": [{
+			"id": 9,
+			"label": "机加区"
+		}, {
+			"id": 10,
+			"label": "倒角区"
+		}]
+	}]
+}, {
+	"id": 3,
+	"label": "六厂房",
+	"children": [{
+		"id": 7,
+    "label": "一跨",
+    "children": [{
+			"id": 9,
+			"label": "装焊区"
+		}, {
+			"id": 10,
+			"label": "倒角区"
+		}]
+	}, {
+		"id": 8,
+    "label": "二跨",
+    "children": [{
+			"id": 9,
+			"label": "装焊区"
+		}, {
+			"id": 10,
+			"label": "倒角区"
+		}]
+	}]
+}]
