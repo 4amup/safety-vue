@@ -274,9 +274,6 @@
 </script>
 
 <style>
-  .container {
-    padding: 10% 5%;
-  }
   .todo-uploader .el-upload {
     border: 1px dashed #d9d9d9;
     width: 50px;

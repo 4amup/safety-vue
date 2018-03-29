@@ -19,8 +19,8 @@
       </el-tree>
       <p v-if="!areaTree">区域树图初始化中...</p>
       <div class="tips" v-else>
-        <p>于{{ areaTree.createdAt }}创建</p>
-        <p>于{{ areaTree.updatedAt }}更新</p>
+        <p>于{{ new Date(areaTree.createdAt).toString() }}创建</p>
+        <p>于{{ new Date(areaTree.updatedAt).toString() }}更新</p>
       </div>
     </div>
 
@@ -259,7 +259,30 @@
           return
         }
 
-        // 判断当前节点类型
+        // 欠缺逻辑，删除节点，将该节点的子节点下的全部删除
+
+        function recursion(id, node) {
+          let arr = []
+          if(node.id === id) {
+            arr.push(id)
+
+            if(node.children && node.children.length>0) {
+              for(let i=0; i<node.children.length; i++) {
+                this.recursion(node.children[i])
+              }
+            }
+          }
+          if(!node) {
+            return arr
+          }
+
+          recursion(node)
+          if(node.children && node.children.length>0) {
+            for(let i=0; i<node.children.length; i++) {
+              this.recursion(node.children[i])
+            }
+          }
+        }
         let area = this.$api.SDK.Object.createWithoutData('Area', key);
         area.destroy().then(function (success) {
           // 删除成功
