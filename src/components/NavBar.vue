@@ -12,53 +12,17 @@
     <el-menu-item index="/list">探索</el-menu-item>
     <el-menu-item index="/library">图库</el-menu-item>
     <el-menu-item index="/tree">组织</el-menu-item>
+    <el-menu-item index="/todo">todo</el-menu-item>
     <li class="search">
       <el-input placeholder="请输入内容" v-model="search" class="input-with-select">
         <el-button slot="append" icon="el-icon-search"></el-button>
       </el-input>
     </li>
-    <li class="todo">
+    <!-- <li class="todo">
       <el-button type="primary" @click="dialogVisible = true">todo</el-button>
-      <el-dialog
-        title="提交"
-        :visible.sync="dialogVisible"
-        width="50%"
-        center>
-        <todo></todo>
-        <!-- <span slot="footer" class="dialog-footer">
-          <el-button @click="dialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
-        </span> -->
-      </el-dialog>
-    </li>
-    <li class="ask">
-      <!-- <el-button type="primary" icon="el-icon-upload" @click="dialogVisible = true">库</el-button> -->
-      <!-- <el-dialog
-        title="图库"
-        :visible.sync="dialogVisible"
-        width="40%">
-        <el-upload
-          :http-request="handleUpload"
-          class="upload-demo"
-          drag
-          ref="upload"
-          list-type="picture"
-          :file-list="fileList"
-          :on-change="handleChange"
-          action="https://jsonplaceholder.typicode.com/posts/"
-          multiple
-          :auto-upload="false">
-          <i class="el-icon-upload"></i>
-          <div class="el-upload__text">将文件拖到此处，或<em>选取文件</em></div>
-          <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过500kb</div>
-        </el-upload>
-        <span slot="footer" class="dialog-footer">
-          <el-button @click="dialogVisible = false">取 消</el-button>
-          <el-button type="success" @click="handleUpload">上传到服务器</el-button>
-          <el-button type="primary" @click="dialogVisible = false">确 定</el-button>
-        </span>
-      </el-dialog> -->
-    </li>
+        <todo :dialogVisible="dialogVisible"></todo>
+    </li> -->
+
     <template v-if="user">
       <el-submenu index="5" class="sign">
         <span slot="title"> {{ user.getUsername() }} </span>
@@ -85,8 +49,6 @@ export default {
       active: '/',
       search: null,
       dialogVisible: false,
-      dialogVi: false,
-      fileList: []
     };
   },
   components: {

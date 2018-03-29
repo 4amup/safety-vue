@@ -1,9 +1,5 @@
 <template>
- <el-dialog
-    title="提交"
-    :visible.sync="dialogVisible"
-    width="50%"
-    center>
+  <div class="container">
     <el-form ref="form"
       :rules="rules"
       :model="form"
@@ -88,7 +84,7 @@
         <el-button @click="handleUpload">传图</el-button>
       </el-form-item>
     </el-form>
- </el-dialog>
+  </div>
 </template>
 <script>
   export default {
@@ -184,7 +180,6 @@
           //   { validator: validateImagesUrl, trigger: 'change' }
           // ],
         },
-        dialogVisible: true,
         options: JSON.parse(JSON.stringify(data)),
         props: {
           value: 'label',
@@ -219,11 +214,7 @@
             console.error(error);
           })
         })
-
       },
-      // upload(files,) {
-
-      // },
       handleChange(file, fileList) {
         this.fileList = fileList
       },
@@ -283,6 +274,9 @@
 </script>
 
 <style>
+  .container {
+    padding: 10% 5%;
+  }
   .todo-uploader .el-upload {
     border: 1px dashed #d9d9d9;
     width: 50px;

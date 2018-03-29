@@ -4,6 +4,7 @@ import HelloWorld from '@/pages/HelloWorld'
 import List from '@/pages/List'
 import Library from '@/pages/Library'
 import Tree from '@/pages/Tree'
+import Todo from '@/pages/Todo'
 import SignUp from '@/pages/SignUp'
 import SignIn from '@/pages/SignIn'
 
@@ -30,6 +31,11 @@ export default new Router({
       path: '/tree',
       name: 'Tree',
       component: Tree
+    },
+    {
+      path: '/todo',
+      name: 'Todo',
+      component: Todo
     },
     {
       path: '/signup',
