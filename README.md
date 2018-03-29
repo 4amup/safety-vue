@@ -35,7 +35,7 @@
 
 * [ ] 发布的todo，由机器在后台实现更加合理的表达，机器学习。
 
-* [ ] 树形结构储存的思路：拟采用[方法三](https://blog.csdn.net/codepython/article/details/49615297)。
+* [x] 树形结构储存的思路：拟采用[方法三](https://blog.csdn.net/codepython/article/details/49615297)。
 
 ## 数据表设计
 
