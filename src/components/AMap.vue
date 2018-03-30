@@ -1,5 +1,8 @@
 <template>
-  <div id="map-container"></div>
+  <div>
+    <p>{{this.editing ? '是' : '否'}}</p>
+    <div id="map-container"></div>
+  </div>
 </template>
 
 <script>
@@ -7,18 +10,59 @@ import AMap from 'AMap'
 import Loca from 'Loca'
 
 export default {
+  data() {
+    return {
+      // colors: ["#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c"]
+      // map: new AMap.Map('map-container', {
+      //   resizeEnable: true,
+      //   zoom:16,
+      //   showIndoorMap: false,
+      //   zooms: [16, 20],
+      //   mapStyle: 'amap://styles/grey',
+      //   center: [126.678551,45.715461]
+      // }),
+    }
+  },
+  props: [
+    "editing"
+  ],
   mounted() {
     this.init()
   },
+  watch: {
+    editing (n, o) {
+      console.log('change')
+      if(this.editing) {
+        this.map.setMapStyle('amap://styles/dark'); // 设置地图特殊样式，提示可以开始划范围了
+        mouseTool.polygon();
+      }
+    }
+  },
   methods: {
     init() {
-      const colors = ["#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c"];
+      let colors = ["#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c"]
       let map = new AMap.Map('map-container', {
         resizeEnable: true,
         zoom:16,
+        showIndoorMap: false,
+        zooms: [16, 20],
         mapStyle: 'amap://styles/grey',
         center: [126.678551,45.715461]
       });
+
+
+      let mouseTool = new AMap.MouseTool(map) //在地图中添加MouseTool插件
+      map.plugin(mouseTool)
+
+      // if(this.editing) {
+      //   map.setMapStyle('amap://styles/dark'); // 设置地图特殊样式，提示可以开始划范围了
+      //   mouseTool.polygon();
+      // }
+
+
+      // 限制地图显示区域
+      AMap.Bounds()
+      map.setLimitBounds(map.getBounds())
 
       let loca = Loca.create(map);
 
@@ -31,7 +75,7 @@ export default {
         ]}
       ]
 
-      var layer = Loca.visualLayer({
+      let layer = Loca.visualLayer({
         container: loca,
         type: 'polygon',
         shape: 'polygon'
@@ -43,13 +87,6 @@ export default {
       })
 
       layer.setOptions({
-        // style: {
-        //   radius: 10,
-        //   fill: 'red',
-        //   stroke: 'gray',
-        //   lineWidth: 1,
-        //   opacity: 0.3
-        // }
         style: {
           lineWidth: 0.5,
           stroke: '#ECEFF1',

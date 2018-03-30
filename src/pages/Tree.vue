@@ -8,7 +8,6 @@
         :data="data"
         :default-expanded-keys="[0]"
         node-key="id"
-        default-expand-all
         accordion
         :highlight-current="true"
         :check-strictly="false"
@@ -28,15 +27,19 @@
     <div class="areaInfo">
       <h2>区域信息</h2>
 
-      <p v-if="!currentNode">无数据，选中后，显示该节点数据</p>
+      <p v-if="!currentData">无数据，选中后，显示该节点数据</p>
 
-      <div v-else v-show="!this.editing">
-        <!-- <p><span>区域id：</span>{{currentNode.id}}</p> -->
-        <!-- <p><span>区域名称：</span>{{currentNode.get('name')}}</p>
-        <p><span>区域路径：</span>{{currentNode.get('path') ? '有' : '无'}}</p> -->
-        <p><span>区域id：</span>{{currentNode.objectId}}</p>
+      <div v-else>
+        <p><span>区域id：</span>{{currentNode.id}}</p>
         <p><span>区域名称：</span>{{currentNode.name}}</p>
-        <p><span>区域路径：</span>{{currentNode.path ? '有' : '无'}}</p>
+        <p><span>区域路径：</span>{{currentData.get('path') ? '有' : '无'}}</p>
+        <div class="tips">
+          <p>{{ new Date(currentData.createdAt).toString() }}创建</p>
+          <p>{{ new Date(currentData.updatedAt).toString() }}更新</p>
+        </div>
+        <!-- <p><span>区域id：</span>{{currentNode.objectId}}</p>
+        <p><span>区域名称：</span>{{currentNode.name}}</p>
+        <p><span>区域路径：</span>{{currentNode.path ? '有' : '无'}}</p> -->
 
       </div>
 
@@ -61,11 +64,11 @@
       <el-button :disabled="appending" @click="editNode">{{this.editing ? '提交' : '编辑'}}</el-button>
       <el-button :disabled="editing" @click="appendNode">{{this.appending ? '提交': '添加'}}</el-button>
       <el-button :disabled="(appending || editing)" @click="removeNode">删除</el-button>
-      <el-button :disabled="(appending || editing)" @click="removeNode">取消</el-button>
+      <el-button @click="cancelAllStatus">取消</el-button>
     </div>
 
     <div class="map">
-      <a-map></a-map>
+      <a-map :editing="editing"></a-map>
     </div>
   </div>
 </template>
@@ -80,7 +83,8 @@
         data: [], // 区域图源数据
         editing: false, // 节点是否在编辑状态
         appending: false, // 节点是否在添加状态
-        currentNode: null, // 当前选中节点
+        currentNode: null, // 当前选中节点对应树图数据
+        currentData: null,
         childNode: { // 待添加默认子节点
           label: '默认节点',
           type: null,
@@ -139,7 +143,7 @@
       getArea(id) {
         let q = new this.$api.SDK.Query('Area')
         q.get(id).then(area => {
-          this.currentNode = area.toJSON()
+          this.currentData = area
         })
         .catch(error => {
           console.log(error)
@@ -148,8 +152,8 @@
 
       // 当前选中的节点，钩子函数
       selectCurrentNode(data, node) {
-        let id = data.id
-        this.getArea(id)
+        this.currentNode = data // 对应前端数据
+        this.getArea(data.id) // 对应后端数据
       },
 
       appendNode() {
@@ -198,7 +202,7 @@
           let Area = this.$api.SDK.Object.extend('Area');
           let area = new Area()
           area.set('name', appendingForm.name)
-          area.set('path', appendingForm.path)
+          area.set('path', null)
           area.save().then(area => {
             let newChild = {
               id: area.id,
@@ -240,9 +244,17 @@
         if(this.editing) { // 如果在节点编辑状态
           let form = this.$refs.editingForm.model
 
-          let area = this.$api.SDK.Object.createWithoutData('Area', key);
+          let area = this.$api.SDK.Object.createWithoutData('Area', key)
+
+          // 由于创建的是空对象，所以功能并没有完成
+          if(area.get('name') === form.name) {
+            console.log('内容无修改，不上传')
+            return false // 如果名字没有修改，就不上传了
+          }
+
           // 修改属性
           area.set('name', form.name)
+          area.set('path', null)
           // 保存到云端
           area.save()
           .then(() => {
@@ -306,7 +318,14 @@
           console.log(error, '删除失败')
         })
       },
+
+      cancelAllStatus() {
+        this.editing = false;
+        this.appending = false;
+      }
     },
+
+
 
     // 自定义指令实现input的focus触发 https://cn.vuejs.org/v2/guide/custom-directive.html
     directives: {
