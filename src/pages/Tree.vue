@@ -68,6 +68,7 @@
     </div>
 
     <div class="map">
+      <h2>区域图</h2>
       <a-map :editing="editing"></a-map>
     </div>
   </div>

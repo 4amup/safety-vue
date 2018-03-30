@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p>{{this.editing ? '是' : '否'}}</p>
+    <p>当前{{this.editing ? '为' : '不处于'}}编辑状态</p>
     <div id="map-container"></div>
   </div>
 </template>
@@ -8,19 +8,14 @@
 <script>
 import AMap from 'AMap'
 import Loca from 'Loca'
+// 共享一个map实例
+let map;
+let mouseTool = new AMap.MouseTool(map) //在地图中添加MouseTool插件
 
 export default {
   data() {
     return {
-      // colors: ["#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c"]
-      // map: new AMap.Map('map-container', {
-      //   resizeEnable: true,
-      //   zoom:16,
-      //   showIndoorMap: false,
-      //   zooms: [16, 20],
-      //   mapStyle: 'amap://styles/grey',
-      //   center: [126.678551,45.715461]
-      // }),
+
     }
   },
   props: [
@@ -33,15 +28,21 @@ export default {
     editing (n, o) {
       console.log('change')
       if(this.editing) {
-        this.map.setMapStyle('amap://styles/dark'); // 设置地图特殊样式，提示可以开始划范围了
+        // let mouseTool = new AMap.MouseTool(map) //在地图中添加MouseTool插件
+
+        map.plugin(mouseTool)
+        map.setMapStyle('amap://styles/blue'); // 设置地图特殊样式，提示可以开始划范围了
+
         mouseTool.polygon();
+      }else{
+        map.setMapStyle('amap://styles/grey'); // 设置地图特殊样式，提示可以开始划范围了
       }
     }
   },
   methods: {
     init() {
       let colors = ["#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c"]
-      let map = new AMap.Map('map-container', {
+      map = new AMap.Map('map-container', {
         resizeEnable: true,
         zoom:16,
         showIndoorMap: false,
