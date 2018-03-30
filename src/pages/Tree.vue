@@ -9,6 +9,7 @@
         :default-expanded-keys="[0]"
         node-key="id"
         default-expand-all
+        accordion
         :highlight-current="true"
         :check-strictly="false"
         :expand-on-click-node="false">
@@ -19,8 +20,8 @@
       </el-tree>
       <p v-if="!areaTree">区域树图初始化中...</p>
       <div class="tips" v-else>
-        <p>于{{ new Date(areaTree.createdAt).toString() }}创建</p>
-        <p>于{{ new Date(areaTree.updatedAt).toString() }}更新</p>
+        <p>{{ new Date(areaTree.createdAt).toString() }}创建</p>
+        <p>{{ new Date(areaTree.updatedAt).toString() }}更新</p>
       </div>
     </div>
 
@@ -30,10 +31,12 @@
       <p v-if="!currentNode">无数据，选中后，显示该节点数据</p>
 
       <div v-else v-show="!this.editing">
-        <p><span>节点id：</span>{{currentNode.id}}</p>
-        <p><span>节点名称：</span>{{currentNode.name}}</p>
-        <p><span>节点路径：</span>{{currentNode.path}}</p>
-        <p><span>子节点数量：</span>{{currentNode.children ? currentNode.children.length : '无子节点'}}</p>
+        <!-- <p><span>区域id：</span>{{currentNode.id}}</p> -->
+        <!-- <p><span>区域名称：</span>{{currentNode.get('name')}}</p>
+        <p><span>区域路径：</span>{{currentNode.get('path') ? '有' : '无'}}</p> -->
+        <p><span>区域id：</span>{{currentNode.objectId}}</p>
+        <p><span>区域名称：</span>{{currentNode.name}}</p>
+        <p><span>区域路径：</span>{{currentNode.path ? '有' : '无'}}</p>
 
       </div>
 
@@ -58,12 +61,17 @@
       <el-button :disabled="appending" @click="editNode">{{this.editing ? '提交' : '编辑'}}</el-button>
       <el-button :disabled="editing" @click="appendNode">{{this.appending ? '提交': '添加'}}</el-button>
       <el-button :disabled="(appending || editing)" @click="removeNode">删除</el-button>
+      <el-button :disabled="(appending || editing)" @click="removeNode">取消</el-button>
+    </div>
+
+    <div class="map">
+      <a-map></a-map>
     </div>
   </div>
 </template>
 
 <script>
-  let id = 1000;
+  import AMap from '@/components/AMap'
 
   export default {
     data() {
@@ -79,6 +87,9 @@
         },
         type: ['Factory', 'Workshop', 'Stride', 'Area'] // 节点类型
       }
+    },
+    components: {
+      AMap
     },
     beforeMount() {
       this.getAreaTree()
@@ -125,11 +136,10 @@
           console.log(error)
         })
       },
-      getArea(id, _this) {
-        let q = new _this.$api.SDK.Query('Area')
+      getArea(id) {
+        let q = new this.$api.SDK.Query('Area')
         q.get(id).then(area => {
-          console.log(area)
-          return area
+          this.currentNode = area.toJSON()
         })
         .catch(error => {
           console.log(error)
@@ -138,11 +148,8 @@
 
       // 当前选中的节点，钩子函数
       selectCurrentNode(data, node) {
-        // let _this = this
-        // let id = data.id
-        // let area = this.$options.methods.getArea(id, _this)
-        // console.log(area)
-        this.currentNode = data
+        let id = data.id
+        this.getArea(id)
       },
 
       appendNode() {
@@ -320,13 +327,18 @@
   }
 
   .tree, .areaInfo {
-    width: 300px;
+    width: 30%;
+  }
+
+  .map {
+    width: 40%;
   }
 
   .tips p {
     font-size: 12px;
     font-style: italic;
   }
+
 
   /* .custom-tree-node {
     flex: 2;

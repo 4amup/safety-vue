@@ -80,6 +80,7 @@ module.exports = {
     child_process: 'empty'
   },
   externals: {
-    'AMap': 'window.AMap'
+    'AMap': 'window.AMap',
+    'Loca': 'window.Loca'
   }
 }
