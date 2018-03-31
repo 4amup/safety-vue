@@ -255,7 +255,7 @@
 
           // 修改属性
           area.set('name', form.name)
-          area.set('path', null)
+          area.set('path', this.currentData.get('path'))
           // 保存到云端
           area.save()
           .then(() => {

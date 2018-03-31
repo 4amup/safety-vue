@@ -5,7 +5,9 @@ Vue.use(Vuex)
 
 const store = new Vuex.Store({
   state: {
-    user: null
+    user: null,
+    // 所有区域对象
+    areas: null
   },
   mutations: {
     setUser (state, user) {
@@ -18,6 +20,9 @@ const store = new Vuex.Store({
     },
     exit(context) {
       context.commit('setUser', null)
+    },
+    getAreas(context) {
+      //
     }
   }
 })

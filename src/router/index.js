@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Router from 'vue-router'
-import HelloWorld from '@/pages/HelloWorld'
+import Home from '@/pages/Home'
 import List from '@/pages/List'
 import Library from '@/pages/Library'
 import Tree from '@/pages/Tree'
@@ -14,8 +14,8 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'HelloWorld',
-      component: HelloWorld
+      name: 'Home',
+      component: Home
     },
     {
       path: '/list',
