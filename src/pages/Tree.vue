@@ -4,7 +4,7 @@
       <h2>厂区关系图</h2>
       <el-tree
         ref="tree"
-        @current-change="selectCurrentNode"
+        @node-click="selectCurrentNode"
         :data="data"
         :default-expanded-keys="[0]"
         node-key="id"
@@ -27,15 +27,15 @@
     <div class="areaInfo">
       <h2>区域信息</h2>
 
-      <p v-if="!currentData">无数据，选中后，显示该节点数据</p>
+      <p v-if="!currentNode">无数据，选中后，显示该节点数据</p>
 
       <div v-else>
         <p><span>区域id：</span>{{currentNode.id}}</p>
-        <p><span>区域名称：</span>{{currentNode.name}}</p>
-        <p><span>区域路径：</span>{{currentData.get('path') ? '有' : '无'}}</p>
+        <p><span>区域名称：</span>{{ area.name }}</p>
+        <p><span>区域路径：</span>{{ area.path ? '有' : '无'}}</p>
         <div class="tips">
-          <p>{{ new Date(currentData.createdAt).toString() }}创建</p>
-          <p>{{ new Date(currentData.updatedAt).toString() }}更新</p>
+          <p>{{ new Date(area.createdAt).toString() }}创建</p>
+          <p>{{ new Date(area.updatedAt).toString() }}更新</p>
         </div>
         <!-- <p><span>区域id：</span>{{currentNode.objectId}}</p>
         <p><span>区域名称：</span>{{currentNode.name}}</p>
@@ -43,7 +43,7 @@
 
       </div>
 
-      <el-form v-if="this.editing" ref="editingForm" :model="currentNode" label-position="right" label-width="70px">
+      <el-form v-if="area.editStatus" ref="editingForm" :model="currentNode" label-position="right" label-width="70px">
         <el-form-item label="名称：">
           <el-input v-model="currentNode.name"></el-input>
         </el-form-item>
@@ -61,21 +61,22 @@
         </el-form-item>
       </el-form>
 
-      <el-button :disabled="appending" @click="editNode">{{this.editing ? '提交' : '编辑'}}</el-button>
-      <el-button :disabled="editing" @click="appendNode">{{this.appending ? '提交': '添加'}}</el-button>
-      <el-button :disabled="(appending || editing)" @click="removeNode">删除</el-button>
+      <el-button :disabled="appending" @click="editNode">{{area.editStatus ? '提交' : '编辑'}}</el-button>
+      <el-button :disabled="area.editStatus" @click="appendNode">{{this.appending ? '提交': '添加'}}</el-button>
+      <el-button :disabled="(appending || area.editStatus)" @click="removeNode">删除</el-button>
       <el-button @click="cancelAllStatus">取消</el-button>
     </div>
 
     <div class="map">
       <h2>区域图</h2>
-      <a-map :editing="editing"></a-map>
+      <a-map></a-map>
     </div>
   </div>
 </template>
 
 <script>
   import AMap from '@/components/AMap'
+  import { mapState, mapMutations, mapActions } from 'vuex'
 
   export default {
     data() {
@@ -88,17 +89,17 @@
         currentData: null,
         childNode: { // 待添加默认子节点
           label: '默认节点',
-          type: null,
         },
-        type: ['Factory', 'Workshop', 'Stride', 'Area'] // 节点类型
       }
     },
     components: {
       AMap
     },
+
     beforeMount() {
       this.getAreaTree()
     },
+    computed: mapState(['user', 'area']),
 
     methods: {
       uploadAreaTree(_this) {
@@ -141,10 +142,12 @@
           console.log(error)
         })
       },
-      getArea(id) {
+      getAreaId(id) {
         let q = new this.$api.SDK.Query('Area')
         q.get(id).then(area => {
-          this.currentData = area
+          // this.currentData = area
+          area = area.toJSON()
+          this.$store.dispatch('getArea', area); // 保存到 Vuex 中
         })
         .catch(error => {
           console.log(error)
@@ -154,7 +157,8 @@
       // 当前选中的节点，钩子函数
       selectCurrentNode(data, node) {
         this.currentNode = data // 对应前端数据
-        this.getArea(data.id) // 对应后端数据
+
+        this.getAreaId(data.id) // 对应后端数据
       },
 
       appendNode() {
@@ -231,7 +235,6 @@
         // 通过组件定义的方法获取当前选中的节点
         let key = this.$refs.tree.getCurrentKey()
 
-        // let node = this.$refs.tree.getCurrentNode()
         if(this.areaTree === null) {
           this.$message('区域树图初始化，初始化节点后可以操作')
           return
@@ -242,31 +245,32 @@
           return
         }
 
-        if(this.editing) { // 如果在节点编辑状态
+        if(this.area.editStatus) { // 如果在节点编辑状态
           let form = this.$refs.editingForm.model
 
           let area = this.$api.SDK.Object.createWithoutData('Area', key)
 
           // 由于创建的是空对象，所以功能并没有完成
-          if(area.get('name') === form.name) {
-            console.log('内容无修改，不上传')
-            return false // 如果名字没有修改，就不上传了
-          }
+          // if(area.get('name') === form.name) {
+          //   console.log('内容无修改，不上传')
+          //   return false // 如果名字没有修改，就不上传了
+          // }
 
           // 修改属性
           area.set('name', form.name)
-          area.set('path', this.currentData.get('path'))
+          area.set('path', this.area.path)
           // 保存到云端
           area.save()
           .then(() => {
             console.log(`${area.get('name')}更新成功`)
             // 上传树形图结构
             this.$options.methods.uploadAreaTree(_this)
-            this.editing = false
+            this.$store.commit('setAreaEdit')
+            this.$store.dispatch('saveArea', area)
           });
         } else {
           // 设置为编辑状态
-          this.editing = true
+          this.$store.commit('setAreaEdit')
         }
       },
 
@@ -281,28 +285,28 @@
 
         // 欠缺逻辑，删除节点，将该节点的子节点下的全部删除
 
-        function recursion(id, node) {
-          let arr = []
-          if(node.id === id) {
-            arr.push(id)
+        // function recursion(id, node) {
+        //   let arr = []
+        //   if(node.id === id) {
+        //     arr.push(id)
 
-            if(node.children && node.children.length>0) {
-              for(let i=0; i<node.children.length; i++) {
-                this.recursion(node.children[i])
-              }
-            }
-          }
-          if(!node) {
-            return arr
-          }
+        //     if(node.children && node.children.length>0) {
+        //       for(let i=0; i<node.children.length; i++) {
+        //         this.recursion(node.children[i])
+        //       }
+        //     }
+        //   }
+        //   if(!node) {
+        //     return arr
+        //   }
 
-          recursion(node)
-          if(node.children && node.children.length>0) {
-            for(let i=0; i<node.children.length; i++) {
-              this.recursion(node.children[i])
-            }
-          }
-        }
+        //   recursion(node)
+        //   if(node.children && node.children.length>0) {
+        //     for(let i=0; i<node.children.length; i++) {
+        //       this.recursion(node.children[i])
+        //     }
+        //   }
+        // }
         let area = this.$api.SDK.Object.createWithoutData('Area', key);
         area.destroy().then(function (success) {
           // 删除成功
@@ -321,7 +325,7 @@
       },
 
       cancelAllStatus() {
-        this.editing = false;
+        this.$store.commit('setAreaEdit')
         this.appending = false;
       }
     },

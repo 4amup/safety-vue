@@ -1,52 +1,69 @@
 <template>
   <div>
-    <p>当前{{this.editing ? '为' : '不处于'}}编辑状态</p>
+    <p>当前{{area.editStatus ? '为' : '不处于'}}编辑状态</p>
     <div id="map-container"></div>
   </div>
 </template>
 
 <script>
 import AMap from 'AMap'
-import Loca from 'Loca'
+// import Loca from 'Loca'
+import { mapState, mapMutations, mapActions } from 'vuex'
+
 // 共享一个map实例
-let map;
+let map
 
 export default {
   data() {
     return {
+      // area: null,
       testData: [
-        {"lnglat":[
+        {"path":[
           [126.674535,45.712804],
           [126.677925,45.71649],
           [126.681422,45.715666]
         ]},
-        {"lnglat":[
+        {"path":[
           [126.678611,45.718701],
           [126.679298,45.717607],
           [126.681648,45.71703],
           [126.681379,45.718783]
         ]},
+        {"path":[
+          [126.676389,45.712215],
+          [126.679221,45.711429],
+          [126.680433,45.713691],
+          [126.677601,45.714403]
+        ]}
       ]
     }
   },
-  props: [
-    "editing"
-  ],
-  mounted() {
+  mounted () {
     this.init()
   },
+  computed: mapState(['user', 'area']),
   watch: {
-    editing (n, o) {
-      if(this.editing) {
+    'area.editStatus' () {
+      // console.log(this.area.editStatus)
+      let path
+
+      if(this.area.editStatus) {
         map.setMapStyle('amap://styles/blue'); // 设置地图特殊样式，提示可以开始划范围了
         let mouseTool = new AMap.MouseTool(map) //在地图中添加MouseTool插件
         map.plugin(mouseTool)
         mouseTool.polygon()
 
+        let _this = this
+
         let drawOver =  AMap.event.addListener(mouseTool,'draw',function(e){ //监听画完事件
           let p = e.obj.getPath() //获取刚刚画完的多边形路径
-          console.log(p)
+          path = p.map((v) => {
+            return [v.P, v.O]
+          })
 
+          _this.$store.commit('setAreaPath', path)
+
+          // 需要将这个数据传回父模板
           // 准备采用vuex来将数据在不同组件中间共享
           // 返回特定的路径属性就可以
           // 参考leancloud链接https://leancloud.cn/docs/leanstorage_guide-swift.html#hash-916037211
@@ -59,8 +76,13 @@ export default {
     }
   },
   methods: {
+
+    getAreasPath() {
+      //
+    },
     init() {
       let colors = ["#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c"]
+
       map = new AMap.Map('map-container', {
         resizeEnable: true,
         zoom:16,
@@ -73,53 +95,37 @@ export default {
       let mouseTool = new AMap.MouseTool(map) //在地图中添加MouseTool插件
       map.plugin(mouseTool)
 
-      // if(this.editing) {
-      //   map.setMapStyle('amap://styles/dark'); // 设置地图特殊样式，提示可以开始划范围了
-      //   mouseTool.polygon();
-      // }
-
-
       // 限制地图显示区域
       AMap.Bounds()
       map.setLimitBounds(map.getBounds())
 
-      let loca = Loca.create(map);
+      let overlayGroup = new AMap.OverlayGroup() // 添加覆盖物的集合，统一改变属性
 
-      // let testData = [
-      //   {"lnglat":[
-      //     [126.674535,45.712804],
-      //     [126.677925,45.71649],
-      //     [126.681422,45.715666],
-      //     [126.674535,45.712804]
-      //   ]}
-      // ]
+      this.testData.forEach(function(value, index) { // 实例化覆盖物，并添加到集合中
+      // 将来根据不同的层级，显示不同的填充色和线色
+      // 距离很近的最底层area，显示相近色区分，或者直接按照颜色分类
+        let polygon = new AMap.Polygon({
+          path: value.path,//设置多边形边界路径
+          strokeColor: "#FF33FF", //线颜色
+          strokeOpacity: 0.2, //线透明度
+          strokeWeight: 2,    //线宽
+          fillColor: "#1791fc", //填充色
+          fillOpacity: 0.35,//填充透明度
+          extData: { //测试数据，将来要从服务端获取
+            id: '1111',
+            name: 'test'
+          }
+        });
 
-      let layer = Loca.visualLayer({
-        container: loca,
-        type: 'polygon',
-        shape: 'polygon'
+        overlayGroup.addOverlay(polygon)
+      })
+
+      overlayGroup.setMap(map) // 将所有覆盖物显示在地图上
+      overlayGroup.on("mouseover", function(e) { // 添加显示覆盖物的属性的事件监听
+        let area = e.target
+        console.log('正在监听覆盖物上的鼠标移过事件', area.getExtData().name)
+        // 将来鼠标滑过显示当前覆盖物的名称，方便用户选择
       });
-
-      layer.setData(this.testData, {
-        // type: 'json',
-        lnglat: 'lnglat'
-      })
-
-      layer.setOptions({
-        style: {
-          lineWidth: 0.5,
-          stroke: '#ECEFF1',
-          opacity: 0.3,
-          fill: function (res) {
-            var index = res.index;
-            return colors[index % colors.length];
-          },
-          fillOpacity: 0.5
-        }
-      })
-
-      // 渲染
-      layer.render();
     }
   }
 }

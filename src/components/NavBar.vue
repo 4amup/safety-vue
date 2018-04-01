@@ -41,7 +41,7 @@
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex'
+import { mapState, mapMutations, mapActions } from 'vuex'
 import Todo from '@/components/Todo'
 export default {
   data() {

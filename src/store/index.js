@@ -6,12 +6,25 @@ Vue.use(Vuex)
 const store = new Vuex.Store({
   state: {
     user: null,
-    // 所有区域对象
-    areas: null
+    area: { // 当前的一个区域对象，需要不同组件之间共享数据
+      editStatus: false, // 节点是否在编辑状态
+      appendStatus: false, // 节点是否在添加状态
+      name: null,
+      path: null,
+    },
   },
   mutations: {
     setUser (state, user) {
       state.user = user
+    },
+    setArea (state, area) {
+      state.area  = {...state.area, ...area}
+    },
+    setAreaPath(state, path) {
+      state.area.path = path
+    },
+    setAreaEdit (state) {
+      state.area.editStatus = !state.area.editStatus
     },
   },
   actions: {
@@ -21,8 +34,11 @@ const store = new Vuex.Store({
     exit(context) {
       context.commit('setUser', null)
     },
-    getAreas(context) {
-      //
+    getArea(context, area) {
+      context.commit('setArea', area)
+    },
+    saveArea(context, area) {
+      context.commit('setArea', area)
     }
   }
 })
