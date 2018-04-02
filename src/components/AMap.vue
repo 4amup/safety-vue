@@ -25,7 +25,7 @@ export default {
   data() {
     return {
       polygons: [],
-      areas: [],
+      areas: null, //这个数据也得使用vuex共享
       mapOptions: {
         resizeEnable: true,
         zoom:17,
@@ -108,8 +108,6 @@ export default {
 
     // 编辑路径数据
     editAreaPolygon() {
-
-
       let path // 定义刚画完的路径
       if(this.area.editStatus) {
         map.setMapStyle('amap://styles/blue'); // 设置地图特殊样式，提示可以开始划范围了
@@ -125,8 +123,8 @@ export default {
             return [v.O, v.P]
           })
           _this.areas.push({
-            id: area.id,
-            name: area.name,
+            id: _this.area.id,
+            name: _this.area.name,
             path: path
           })
           _this.$store.commit('setAreaPath', path)

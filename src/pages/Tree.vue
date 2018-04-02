@@ -10,7 +10,8 @@
         node-key="id"
         accordion
         :highlight-current="true"
-        :check-strictly="false">
+        :check-strictly="false"
+        :expand-on-click-node="false">
         <span class="custom-tree-node" slot-scope="{ node, data }">
           <!-- <span v-if="!data.editing"><i class="el-icon-info"></i>  {{ node.label }}</span> -->
           <span>{{ data.name }}</span>
