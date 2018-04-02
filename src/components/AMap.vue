@@ -59,6 +59,7 @@ export default {
     }
   },
   watch: {
+    'area.name': 'hignlightCurrentArea',
     'area.editStatus': 'editAreaPolygon', // 引用编辑方法
     'areasFormart.length': 'renderPolygon', // 添加新的区域后，重新渲染图
   },
@@ -83,24 +84,31 @@ export default {
       AMap.Bounds()
       map.setLimitBounds(map.getBounds())
     },
+    // 高亮当前节点
+    hignlightCurrentArea() {
+      //
+      if(this.area.path) { //区域有路径，就将路径改成编辑模式，使用AMap.PolyEditor插件
+        // 首先遍历，找出当前的区域polygon，并将其改成编辑状态
+        for(let i =0; i<this.polygons.length; i++) {
+          let polygon = this.polygons[i]
+
+          if(polygon.getExtData().id === this.area.objectId) {
+            // 将当前的区域高亮显示
+            polygon.setOptions({
+              fillColor: '#fff'
+            })
+            continue // 高亮后跳出本次循环
+          }
+          polygon.setOptions({
+            fillColor: '#1791fc' // 其他区域恢复原来的颜色
+          })
+        }
+      }
+    },
 
     // 编辑路径数据
     editAreaPolygon() {
 
-      
-      // 编辑要分情况，1本身没有路径，就使用mouseTool新建
-      if(this.area.path) { //区域有路径，就将路径改成编辑模式，使用AMap.PolyEditor插件
-        // 首先遍历，找出当前的区域polygon，并将其改成编辑状态
-       for(let i =0; i<this.polygons.length; i++) {
-        let polygon = this.polygons[i]
-        if(polygon.getExtData().id === this.area.id) {
-          polygon.setOptions({
-            fillColor: '#fff'
-          })
-          break
-        }
-        }
-      }
 
       let path // 定义刚画完的路径
       if(this.area.editStatus) {
