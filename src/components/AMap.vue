@@ -202,10 +202,7 @@ export default {
         }
       } else {
         map.setMapStyle('amap://styles/grey')
-        console.log('结束编辑', this.polylineEditor)
         if(this.polylineEditor) {
-          let path = this.polylineEditor.fp.map((v) => [v.O, v.P])
-          this.$store.commit('setAreaPath', path)
           this.polylineEditor.close()
         }
       }

@@ -245,7 +245,7 @@
         if(this.area.editStatus) { // 如果在节点编辑状态
           let form = this.$refs.editingForm.model
 
-          let area = this.$api.SDK.Object.createWithoutData('Area', key)
+          let cloudArea = this.$api.SDK.Object.createWithoutData('Area', key)
 
           // 由于创建的是空对象，所以功能并没有完成
           // if(area.get('name') === form.name) {
@@ -254,12 +254,12 @@
           // }
 
           // 修改属性
-          area.set('name', form.name)
-          area.set('path', this.area.attributes.path)
+          cloudArea.set('name', form.name)
+          cloudArea.set('path', this.area.attributes.path)
           // 保存到云端
-          area.save()
+          cloudArea.save()
           .then(() => {
-            console.log(`${area.get('name')}更新成功`)
+            console.log(`${area.get('path').length}数组长度`)
             // 上传树形图结构
             this.$options.methods.syncAreaTree(that)
             this.$store.commit('setAreaEdit')
