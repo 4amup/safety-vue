@@ -9,8 +9,10 @@ const store = new Vuex.Store({
     area: { // 当前的一个区域对象，需要不同组件之间共享数据
       editStatus: false, // 节点是否在编辑状态
       appendStatus: false, // 节点是否在添加状态
-      name: null,
-      path: null,
+      attributes: {
+        name: null,
+        path: []
+      }
     },
   },
   mutations: {
@@ -21,7 +23,7 @@ const store = new Vuex.Store({
       state.area  = {...state.area, ...area}
     },
     setAreaPath(state, path) {
-      state.area.path = path
+      state.area.attributes.path = path
     },
     setAreaEdit (state) {
       state.area.editStatus = !state.area.editStatus

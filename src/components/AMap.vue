@@ -24,8 +24,10 @@ let overlayGroup = new AMap.OverlayGroup() // 添加覆盖物的集合，统一�
 export default {
   data() {
     return {
-      polygons: [],
-      areas: null, //这个数据也得使用vuex共享
+      // polygons: [],
+      // overlayGroup: new AMap.OverlayGroup(),
+      currentPolygon: null,
+      areas: [], //这个数据也需要使用vuex共享
       mapOptions: {
         resizeEnable: true,
         zoom:17,
@@ -45,32 +47,32 @@ export default {
   computed: {
     ...mapState(['user', 'area']),
     // 格式化areas数据，供将来的渲染函数使用
-    areasFormart: function() {
-      return this.areas.map(function (value, index) {
-        let path = value.get('path')
-        let id = value.id
-        let name = value.get('name')
-        return {
-          "id": id,
-          "name": name,
-          "path":path
-        }
-      })
-    }
+    // areasFormart: function() {
+    //   return this.areas.map(function (value, index) {
+    //     let path = value.get('path')
+    //     let id = value.id
+    //     let name = value.get('name')
+    //     return {
+    //       "id": id,
+    //       "name": name,
+    //       "path":path
+    //     }
+    //   })
+    // }
   },
   watch: {
-    'area.name': 'hignlightCurrentArea',
+    'area.id': 'hignlightCurrentArea', // area的id改变时，高亮当前节点
     'area.editStatus': 'editAreaPolygon', // 引用编辑方法
-    'areasFormart.length': 'renderPolygon', // 添加新的区域后，重新渲染图
+    'areas.length': 'renderPolygon', // 添加新的区域后，重新渲染图
   },
   methods: {
     // 从服务端获取区域对象的数据
     getAreas() {
-      let _this = this
+      let that = this
       let query = new this.$api.SDK.Query('Area');
       query.find()
       .then(function (areas) {
-        _this.areas = areas
+        that.areas = areas
       })
       .catch(error => {
         console.log(error)
@@ -84,72 +86,15 @@ export default {
       AMap.Bounds()
       map.setLimitBounds(map.getBounds())
     },
-    // 高亮当前节点
-    hignlightCurrentArea() {
-      //
-      if(this.area.path) { //区域有路径，就将路径改成编辑模式，使用AMap.PolyEditor插件
-        // 首先遍历，找出当前的区域polygon，并将其改成编辑状态
-        for(let i =0; i<this.polygons.length; i++) {
-          let polygon = this.polygons[i]
-
-          if(polygon.getExtData().id === this.area.objectId) {
-            // 将当前的区域高亮显示
-            polygon.setOptions({
-              fillColor: '#fff'
-            })
-            continue // 高亮后跳出本次循环
-          }
-          polygon.setOptions({
-            fillColor: '#1791fc' // 其他区域恢复原来的颜色
-          })
-        }
-      }
-    },
-
-    // 编辑路径数据
-    editAreaPolygon() {
-      let path // 定义刚画完的路径
-      if(this.area.editStatus) {
-        map.setMapStyle('amap://styles/blue'); // 设置地图特殊样式，提示可以开始划范围了
-        let mouseTool = new AMap.MouseTool(map) //在地图中添加MouseTool插件
-        map.plugin(mouseTool)
-        mouseTool.polygon()
-
-        let _this = this // 暂存this，参数传入下列函数
-
-        let drawOver = AMap.event.addListener(mouseTool,'draw',function(e){ //监听画完事件
-          let p = e.obj.getPath() //获取刚刚画完的多边形路径
-          path = p.map((v) => {
-            return [v.O, v.P]
-          })
-          _this.areas.push({
-            id: _this.area.id,
-            name: _this.area.name,
-            path: path
-          })
-          _this.$store.commit('setAreaPath', path)
-          mouseTool.close(true) // 画完后清除多边形
-          // 需要将这个数据传回父模板
-          // 准备采用vuex来将数据在不同组件中间共享
-          // 返回特定的路径属性就可以
-          // 参考leancloud链接https://leancloud.cn/docs/leanstorage_guide-swift.html#hash-916037211
-        })
-
-
-      } else {
-        map.setMapStyle('amap://styles/grey'); // 设置地图特殊样式，提示可以开始划范围了
-      }
-    },
     // 根据数据渲染多边形
     renderPolygon() {
-      let data = this.areasFormart
-      let _this = this
+      let data = this.areas
 
       data.forEach(function(value, index) { // 实例化覆盖物，并添加到集合中
-      if(!value.path) return // 如果区域的节点路径不存在，就不渲染
-      // 将来根据不同的层级，显示不同的填充色和线色
+        if(!value.attributes.path) return // 如果区域的节点路径不存在，就不渲染
+        // 将来根据不同的层级，显示不同的填充色和线色
         let polygon = new AMap.Polygon({
-          path: value.path,//设置多边形边界路径
+          path: value.attributes.path,//设置多边形边界路径
           strokeColor: "#FF33FF", //线颜色
           strokeOpacity: 0.2, //线透明度
           strokeWeight: 2,    //线宽
@@ -157,12 +102,9 @@ export default {
           fillOpacity: 0.35,//填充透明度
           extData: { //测试数据，将来要从服务端获取
             id: value.id,
-            name: value.name
+            name: value.attributes.name
           }
         });
-
-        _this.polygons.push(polygon);
-
         overlayGroup.addOverlay(polygon)
       })
 
@@ -173,6 +115,85 @@ export default {
         // 后续使用AMap.text显示区域名称，方便用户选择
         // 将来鼠标滑过显示当前覆盖物的名称，方便用户选择
       });
+    },
+    // 高亮当前节点
+    hignlightCurrentArea() {
+
+      let that = this // 暂存this对象
+      // 遍历查找当前polygon，通过id
+      if(!this.area.id) {
+        return
+      } else {
+        overlayGroup.eachOverlay(function(overlay, index, collections) {
+          if(overlay.getExtData().id === that.area.id) {
+            this.currentPolygon = overlay
+            // 然后将多边形高亮
+            overlay.setOptions({
+              fillColor: '#12355b'
+            })
+            that.currentPolygon = overlay //将当前多边形同步至data中
+          } else {
+            // 恢复原来颜色
+            overlay.setOptions({
+              fillColor: '#1791fc'
+            })
+          }
+        })
+      }
+    },
+
+    // 编辑路径数据
+    editAreaPolygon() {
+      let that = this // 暂存this
+      let currentPolygon = this.currentPolygon// 当前区域，绘画路径
+      // 添加绘画polygon和编辑polygon实例
+      let polylineEditor = new AMap.PolyEditor(map, this.currentPolygon);
+      let mouseTool = new AMap.MouseTool(map) //在地图中添加MouseTool插件
+
+      let drawOver = AMap.event.addListener(mouseTool,'draw',function(e){ //监听画完事件
+        // 新建一个polygon，加入 overlayGroup
+        let polygon = new AMap.Polygon({
+          path:  e.obj.getPath(),//设置多边形边界路径
+          strokeColor: "#FF33FF", //线颜色
+          strokeOpacity: 0.2, //线透明度
+          strokeWeight: 2,    //线宽
+          fillColor: "#1791fc", //填充色
+          fillOpacity: 0.35,//填充透明度
+          extData: { //测试数据，将来要从服务端获取
+            id: that.area.id,
+            name: that.area.attributes.name
+          }
+        });
+
+        // 格式化路径数据
+        let path = polygon.getPath().map((v) => [v.O, v.P])
+        // 改变当前区域数据
+        overlayGroup.addOverlay(polygon)
+        that.$store.commit('setAreaPath', path)
+        mouseTool.close(true) // 画完后清除多边形
+        // 需要将这个数据传回父模板
+        // 准备采用vuex来将数据在不同组件中间共享
+        // 返回特定的路径属性就可以
+        // 参考leancloud链接https://leancloud.cn/docs/leanstorage_guide-swift.html#hash-916037211
+      })
+
+      if(!this.area.editStatus) { //改变后处于处于非编辑状态，异步操作在这个函数中写
+        map.setMapStyle('amap://styles/grey') // 恢复正常样式
+        // 结束编辑状态
+        polylineEditor.close()
+        return
+      }
+      if(this.area.editStatus) {
+        map.setMapStyle('amap://styles/blue')
+      }
+      // 如果当前节点路径是有的，直接进入编辑模式
+      if(this.area.attributes.path) {
+        polylineEditor.open();
+      } else {
+        // 如果没有路径，直接新建路径
+        map.plugin(mouseTool)
+        mouseTool.polygon() //打开新建工具
+      }
     },
   }
 }

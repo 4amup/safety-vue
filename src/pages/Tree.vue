@@ -31,15 +31,12 @@
 
       <div v-else>
         <p><span>区域id：</span>{{currentNode.id}}</p>
-        <p><span>区域名称：</span>{{ area.name }}</p>
-        <p><span>区域路径：</span>{{ area.path ? '有' : '无'}}</p>
+        <p><span>区域名称：</span>{{ area.attributes.name }}</p>
+        <p><span>区域路径：</span>{{ area.attributes.path ? '有' : '无'}}</p>
         <div class="tips">
           <p>{{ new Date(area.createdAt).toString() }}创建</p>
           <p>{{ new Date(area.updatedAt).toString() }}更新</p>
         </div>
-        <!-- <p><span>区域id：</span>{{currentNode.objectId}}</p>
-        <p><span>区域名称：</span>{{currentNode.name}}</p>
-        <p><span>区域路径：</span>{{currentNode.path ? '有' : '无'}}</p> -->
 
       </div>
 
@@ -102,11 +99,11 @@
     computed: mapState(['user', 'area']),
 
     methods: {
-      uploadAreaTree(_this) {
-        if(_this.areaTree !==null) { // 存在区域树图对象，则根据id进行更新操作
-          let areaTree = _this.$api.SDK.Object.createWithoutData('AreaTree', _this.areaTree.id);
+      syncAreaTree(that) { //同步云端树图
+        if(that.areaTree !==null) { // 存在区域树图对象，则根据id进行更新操作
+          let areaTree = that.$api.SDK.Object.createWithoutData('AreaTree', that.areaTree.id);
           // 设置名称
-          areaTree.set('data', _this.data);
+          areaTree.set('data', that.data);
           // 设置优先级
           areaTree.save().then(function (tree) {
             console.log(tree.id, '树图同步成功');
@@ -114,10 +111,10 @@
             console.error(error);
           });
         } else { //不存在则进行新建操作
-          let areaTree = _this.$api.SDK.Object.extend('AreaTree');
+          let areaTree = that.$api.SDK.Object.extend('AreaTree');
           areaTree = new areaTree()
           // 新建对象
-          areaTree.set('data', _this.data);
+          areaTree.set('data', that.data);
           // 设置优先级
           areaTree.save().then((tree) => {
             //
@@ -146,7 +143,7 @@
         let q = new this.$api.SDK.Query('Area')
         q.get(id).then(area => {
           // this.currentData = area
-          area = area.toJSON()
+          area = area
           this.$store.dispatch('getArea', area); // 保存到 Vuex 中
         })
         .catch(error => {
@@ -162,7 +159,7 @@
       },
 
       appendNode() {
-        let _this = this
+        let that = this
         // 如果数据项是空的，则表示处于初始化状态
         if(this.data.length === 0) {
           this.$message('区域树图初始化')
@@ -171,7 +168,7 @@
             let Area = this.$api.SDK.Object.extend('Area')
             let area = new Area()
             area.set('name', form.name);
-            area.set('path', null);
+            area.set('path', []);
             area.save().then(area => {
               let root = {
                 id: area.id,
@@ -181,7 +178,7 @@
               // 前端显示
               this.data.push(root)
               // 上传树形图结构
-              this.$options.methods.uploadAreaTree(_this)
+              this.$options.methods.syncAreaTree(that)
               this.appending = false
             })
             .catch(error => {
@@ -216,7 +213,7 @@
             }
             this.$refs.tree.append(newChild, key)
             // 上传树形图结构
-            this.$options.methods.uploadAreaTree(_this)
+            this.$options.methods.syncAreaTree(that)
             this.appending = false // 将添加状态还原
           })
           .catch(error => {
@@ -231,7 +228,7 @@
       },
 
       editNode() {
-        let _this = this
+        let that = this
         // 通过组件定义的方法获取当前选中的节点
         let key = this.$refs.tree.getCurrentKey()
 
@@ -258,13 +255,13 @@
 
           // 修改属性
           area.set('name', form.name)
-          area.set('path', this.area.path)
+          area.set('path', this.area.attributes.path)
           // 保存到云端
           area.save()
           .then(() => {
             console.log(`${area.get('name')}更新成功`)
             // 上传树形图结构
-            this.$options.methods.uploadAreaTree(_this)
+            this.$options.methods.syncAreaTree(that)
             this.$store.commit('setAreaEdit')
             this.$store.dispatch('saveArea', area)
           });
@@ -275,7 +272,7 @@
       },
 
       removeNode() {
-        let _this = this
+        let that = this
         let key = this.$refs.tree.getCurrentKey()
 
         if(!key) {
@@ -283,30 +280,21 @@
           return
         }
 
-        // 欠缺逻辑，删除节点，将该节点的子节点下的全部删除
+        // 遍历获取删除节点，研究遍历算法
+        function traverseTree(node, id) {
+          if (node.id === id) {
+            return node;
+          }
 
-        // function recursion(id, node) {
-        //   let arr = []
-        //   if(node.id === id) {
-        //     arr.push(id)
+          traverseTree(node);
+          if(node.children && node.children.length>0) {
+            for (let n of node.children) {
+              console.log(node.name)
+              traverseTree(n);
+            }
+          }
+        }
 
-        //     if(node.children && node.children.length>0) {
-        //       for(let i=0; i<node.children.length; i++) {
-        //         this.recursion(node.children[i])
-        //       }
-        //     }
-        //   }
-        //   if(!node) {
-        //     return arr
-        //   }
-
-        //   recursion(node)
-        //   if(node.children && node.children.length>0) {
-        //     for(let i=0; i<node.children.length; i++) {
-        //       this.recursion(node.children[i])
-        //     }
-        //   }
-        // }
         let area = this.$api.SDK.Object.createWithoutData('Area', key);
         area.destroy().then(function (success) {
           // 删除成功
@@ -316,7 +304,7 @@
           // 在前端删除对象
           this.$refs.tree.remove(key)
           // 重新上传树图
-          this.$options.methods.uploadAreaTree(_this)
+          this.$options.methods.syncAreaTree(that)
           console.log(`id为${key}的节点前端删除成功`)
         })
         .catch(error => {
