@@ -61,7 +61,7 @@
       <el-button :disabled="appending" @click="editNode">{{area.editStatus ? '提交' : '编辑'}}</el-button>
       <el-button :disabled="area.editStatus" @click="appendNode">{{this.appending ? '提交': '添加'}}</el-button>
       <el-button :disabled="(appending || area.editStatus)" @click="removeNode">删除</el-button>
-      <el-button @click="cancelAllStatus">取消</el-button>
+      <el-button :disabled="!(appending || area.editStatus)" @click="cancelAllStatus">取消</el-button>
     </div>
 
     <div class="map">
@@ -286,11 +286,22 @@
             return node;
           }
 
-          traverseTree(node);
           if(node.children && node.children.length>0) {
             for (let n of node.children) {
               console.log(node.name)
-              traverseTree(n);
+              return traverseTree(n);
+            }
+          }
+        }
+        function traverseTree(node) {
+          if(!node) {
+            return
+          }
+
+          if(node.children && node.children.length>0) {
+            for (let node of node.children) {
+              console.log(node.name)
+              return traverseTree(node);
             }
           }
         }

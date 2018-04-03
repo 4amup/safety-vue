@@ -19,7 +19,7 @@ let map = new AMap.Map('map-container', {
   center: [126.678551,45.715461]
 });
 
-let overlayGroup = new AMap.OverlayGroup() // 添加覆盖物的集合，统一改变属性
+
 
 export default {
   data() {
@@ -27,9 +27,11 @@ export default {
       // polygons: [],
       // overlayGroup: new AMap.OverlayGroup(),
       currentPolygon: null,
+      polylineEditor: null,
       areas: [], //这个数据也需要使用vuex共享
       mapOptions: {
         resizeEnable: true,
+        overlayGroup: null,
         zoom:17,
         showIndoorMap: false,
         zooms: [16, 20],
@@ -43,6 +45,7 @@ export default {
   mounted () {
     this.getAreas()
     this.initMap()
+    this.renderPolygon()
   },
   computed: {
     ...mapState(['user', 'area']),
@@ -88,9 +91,10 @@ export default {
     },
     // 根据数据渲染多边形
     renderPolygon() {
-      let data = this.areas
+      let overlayGroup = new AMap.OverlayGroup() // 添加覆盖物的集合，统一改变属性
+      this.overlayGroup = overlayGroup
 
-      data.forEach(function(value, index) { // 实例化覆盖物，并添加到集合中
+      this.areas.forEach(function(value, index) { // 实例化覆盖物，并添加到集合中
         if(!value.attributes.path) return // 如果区域的节点路径不存在，就不渲染
         // 将来根据不同的层级，显示不同的填充色和线色
         let polygon = new AMap.Polygon({
@@ -124,7 +128,7 @@ export default {
       if(!this.area.id) {
         return
       } else {
-        overlayGroup.eachOverlay(function(overlay, index, collections) {
+        this.overlayGroup.eachOverlay(function(overlay, index, collections) {
           if(overlay.getExtData().id === that.area.id) {
             this.currentPolygon = overlay
             // 然后将多边形高亮
@@ -145,9 +149,9 @@ export default {
     // 编辑路径数据
     editAreaPolygon() {
       let that = this // 暂存this
-      let currentPolygon = this.currentPolygon// 当前区域，绘画路径
       // 添加绘画polygon和编辑polygon实例
-      let polylineEditor = new AMap.PolyEditor(map, this.currentPolygon);
+      let polylineEditor
+      // let polylineEditor = new AMap.PolyEditor(map, this.currentPolygon);
       let mouseTool = new AMap.MouseTool(map) //在地图中添加MouseTool插件
 
       let drawOver = AMap.event.addListener(mouseTool,'draw',function(e){ //监听画完事件
@@ -168,8 +172,9 @@ export default {
         // 格式化路径数据
         let path = polygon.getPath().map((v) => [v.O, v.P])
         // 改变当前区域数据
-        overlayGroup.addOverlay(polygon)
         that.$store.commit('setAreaPath', path)
+        that.overlayGroup.addOverlay(polygon)
+        that.currentPolygon = polygon
         mouseTool.close(true) // 画完后清除多边形
         // 需要将这个数据传回父模板
         // 准备采用vuex来将数据在不同组件中间共享
@@ -177,22 +182,32 @@ export default {
         // 参考leancloud链接https://leancloud.cn/docs/leanstorage_guide-swift.html#hash-916037211
       })
 
-      if(!this.area.editStatus) { //改变后处于处于非编辑状态，异步操作在这个函数中写
-        map.setMapStyle('amap://styles/grey') // 恢复正常样式
-        // 结束编辑状态
-        polylineEditor.close()
-        return
-      }
       if(this.area.editStatus) {
-        map.setMapStyle('amap://styles/blue')
-      }
-      // 如果当前节点路径是有的，直接进入编辑模式
-      if(this.area.attributes.path) {
-        polylineEditor.open();
+        // 如果当前节点路径是有的，直接进入编辑模式
+        if(this.area.attributes.path) {
+          map.setMapStyle('amap://styles/blue')
+          this.polylineEditor = new AMap.PolyEditor(map, this.currentPolygon);
+          this.polylineEditor.open();
+          // 添加结束事件监听
+          // AMap.event.addListener(this.polylineEditor, 'end', function(type, target) {
+          //   let path = target.getPath().map((v) => [v.O, v.P])
+          //   // 改变当前区域数据
+          //   this.$store.commit('setAreaPath', path)
+          // })
+        } else {
+          // 如果没有路径，直接新建路径
+          map.setMapStyle('amap://styles/blue')
+          map.plugin(mouseTool)
+          mouseTool.polygon() //打开新建工具
+        }
       } else {
-        // 如果没有路径，直接新建路径
-        map.plugin(mouseTool)
-        mouseTool.polygon() //打开新建工具
+        map.setMapStyle('amap://styles/grey')
+        console.log('结束编辑', this.polylineEditor)
+        if(this.polylineEditor) {
+          let path = this.polylineEditor.fp.map((v) => [v.O, v.P])
+          this.$store.commit('setAreaPath', path)
+          this.polylineEditor.close()
+        }
       }
     },
   }
