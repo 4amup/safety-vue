@@ -4,7 +4,7 @@
       <h2>厂区关系图</h2>
       <el-tree
         ref="tree"
-        @node-click="selectCurrentNode"
+        @node-click="handleNodeClick"
         :data="data"
         :default-expanded-keys="[0]"
         node-key="id"
@@ -27,10 +27,10 @@
     <div class="areaInfo">
       <h2>区域信息</h2>
 
-      <p v-if="!currentNode">无数据，选中后，显示该节点数据</p>
+      <p v-if="!currentNodeData.id">无数据，选中后，显示该节点数据</p>
 
       <div v-else>
-        <p><span>区域id：</span>{{currentNode.id}}</p>
+        <p><span>区域id：</span>{{currentNodeData.id}}</p>
         <p><span>区域名称：</span>{{ area.attributes.name }}</p>
         <p><span>区域路径：</span>{{ area.attributes.path ? '有' : '无'}}</p>
         <div class="tips">
@@ -40,28 +40,26 @@
 
       </div>
 
-      <el-form v-if="area.editStatus" ref="editingForm" :model="currentNode" label-position="right" label-width="70px">
+      <el-form v-if="area.editStatus" ref="editingForm" :model="area" label-position="right" label-width="70px">
         <el-form-item label="名称：">
-          <el-input v-model="currentNode.name"></el-input>
-        </el-form-item>
-        <el-form-item label="路径：">
-          <el-input v-model="currentNode.path"></el-input>
+          <el-input v-model="area.attributes.name">
+            <el-button slot="append">提交</el-button>
+          </el-input>
         </el-form-item>
       </el-form>
 
-      <el-form v-if="this.appending" ref="appendingForm" :model="childNode" label-position="right" label-width="70px">
+      <el-form v-if="area.appendStatus" ref="appendingForm" :model="childNode" label-position="right" label-width="70px">
         <el-form-item label="名称：">
-          <el-input v-model="childNode.name"></el-input>
-        </el-form-item>
-        <el-form-item label="路径：">
-          <el-input v-model="childNode.path"></el-input>
+          <el-input v-model="childNode.name">
+            <el-button slot="append">提交</el-button>
+          </el-input>
         </el-form-item>
       </el-form>
 
-      <el-button :disabled="appending" @click="editNode">{{area.editStatus ? '提交' : '编辑'}}</el-button>
-      <el-button :disabled="area.editStatus" @click="appendNode">{{this.appending ? '提交': '添加'}}</el-button>
-      <el-button :disabled="(appending || area.editStatus)" @click="removeNode">删除</el-button>
-      <el-button :disabled="!(appending || area.editStatus)" @click="cancelAllStatus">取消</el-button>
+      <el-button :disabled="(area.appendStatus || area.editStatus)" @click="editNode">编辑</el-button>
+      <el-button :disabled="(area.appendStatus || area.editStatus)" @click="appendNode">添加</el-button>
+      <el-button :disabled="(area.appendStatus || area.editStatus) || !currentNodeData.id" @click="removeNode">删除</el-button>
+      <el-button :disabled="!(area.appendStatus || area.editStatus)" @click="cancelAllStatus">取消</el-button>
     </div>
 
     <div class="map">
@@ -80,50 +78,38 @@
       return {
         areaTree: null, // 区域图云端对象
         data: [], // 区域图源数据
-        editing: false, // 节点是否在编辑状态
-        appending: false, // 节点是否在添加状态
-        currentNode: null, // 当前选中节点对应树图数据
-        currentData: null,
+        // area, // 在vuex中共享了，当前区域对象
+        // appending: false, // 节点是否在添加状态
+        currentNodeData: {
+          id: '',
+          name: '',
+          children: []
+        },
         childNode: { // 待添加默认子节点
-          label: '默认节点',
+          name: '默认节点',
         },
       }
     },
+
     components: {
       AMap
     },
 
-    beforeMount() {
+    watch: {
+      data: function(newData, oldData) {
+        this.syncAreaTree()
+      }
+    },
+
+    mounted() {
       this.getAreaTree()
     },
+
     computed: mapState(['user', 'area']),
 
     methods: {
-      syncAreaTree(that) { //同步云端树图
-        if(that.areaTree !==null) { // 存在区域树图对象，则根据id进行更新操作
-          let areaTree = that.$api.SDK.Object.createWithoutData('AreaTree', that.areaTree.id);
-          // 设置名称
-          areaTree.set('data', that.data);
-          // 设置优先级
-          areaTree.save().then(function (tree) {
-            console.log(tree.id, '树图同步成功');
-          }, function (error) {
-            console.error(error);
-          });
-        } else { //不存在则进行新建操作
-          let areaTree = that.$api.SDK.Object.extend('AreaTree');
-          areaTree = new areaTree()
-          // 新建对象
-          areaTree.set('data', that.data);
-          // 设置优先级
-          areaTree.save().then((tree) => {
-            //
-          }, function (error) {
-            console.error(error);
-          });
-        }
-      },
-      getAreaTree() { // 获取区域树关系的查询，在组件加载时查询
+      // 获取区域树关系的查询，在组件加载时查询
+      getAreaTree() {
         let q = new this.$api.SDK.Query('AreaTree')
         q.find().then(trees => {
           if(trees.length===0) {
@@ -132,19 +118,48 @@
             throw Error('云端数据错误')
           } else {
             this.areaTree = trees[0] // 区域树图对象
-            this.data = trees[0].get('data') // 区域树图对象的data属性是前端树图的源数据
+            this.data = trees[0].get('data') // 区域树图对象的data属性是树图的源数据
           }
         }).catch(error => {
           // 错误处理
           console.log(error)
         })
       },
-      getAreaId(id) {
+      //同步云端树图
+      syncAreaTree() {
+        if(this.areaTree !==null) { // 存在区域树图对象，则根据id进行更新操作
+          let areaTree = this.$api.SDK.Object.createWithoutData('AreaTree', this.areaTree.id);
+          // 设置名称
+          areaTree.set('data', this.data);
+          // 设置优先级
+          areaTree.save()
+          .then(function (tree) {
+            console.log('区域树图同步成功');
+          })
+          .catch(error => {
+            console.log('区域树图同步失败');
+            console.error(error)
+          })
+        } else { //不存在则进行新建操作
+          let areaTree = that.$api.SDK.Object.extend('AreaTree');
+          areaTree = new areaTree()
+          // 新建对象
+          areaTree.set('data', this.data);
+          areaTree.save()
+          .then((tree) => {
+            console.log('区域树图新建成功')
+          })
+          .catch(error => {
+            console.log('区域树图新建失败');
+            console.error(error)
+          })
+        }
+      },
+
+      getArea(id) {
         let q = new this.$api.SDK.Query('Area')
         q.get(id).then(area => {
-          // this.currentData = area
-          area = area
-          this.$store.dispatch('getArea', area); // 保存到 Vuex 中
+          this.$store.dispatch('saveArea', area); // 将area保存到Vuex 中
         })
         .catch(error => {
           console.log(error)
@@ -152,69 +167,73 @@
       },
 
       // 当前选中的节点，钩子函数
-      selectCurrentNode(data, node) {
-        this.currentNode = data // 对应前端数据
+      handleNodeClick(data, node, tree) {
+        // 共三个参数，依次为：传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。
+        // data为当前选中节点的数据对象
+        this.currentNodeData = data // 对应前端数据
 
-        this.getAreaId(data.id) // 对应后端数据
+        this.getArea(data.id) // 调用函数后，将area从云端取到vuex中
+      },
+
+      // 检查是否选中了当前节点
+      checkCurrentNodeData() {
+        //
       },
 
       appendNode() {
+        let key = this.$refs.tree.getCurrentKey()
         let that = this
-        // 如果数据项是空的，则表示处于初始化状态
+        // 如果树图源数据为空，则表示处于初始化状态
         if(this.data.length === 0) {
           this.$message('区域树图初始化')
-          if(this.appending) {
+          if(this.area.appendStatus) { //
             let form = this.$refs.appendingForm.model
-            let Area = this.$api.SDK.Object.extend('Area')
-            let area = new Area()
-            area.set('name', form.name);
-            area.set('path', []);
-            area.save().then(area => {
+            let cloudArea = new this.$api.SDK.Object.extend('Area')()
+            cloudArea.set('name', form.name);
+            cloudArea.set('path', []);
+            cloudArea.save().then(area => {
               let root = {
                 id: area.id,
                 name: area.get('name'),
                 children: []
               }
-              // 前端显示
-              this.data.push(root)
-              // 上传树形图结构
-              this.$options.methods.syncAreaTree(that)
-              this.appending = false
+              // 保存成功后，改变前端数据
+              that.data.push(root)
+              that.$refs.tree.setCurrentKey(area.id)
+              that.commit('changeAreaStatus2')
             })
             .catch(error => {
               console.error(error);
             })
-          } else {
-            this.appending = true
+          } else { // 提交改变状态
+            this.$store.commit('changeAreaStatus2')
           }
+
+          return //终止函数继续执行
         }
 
         // 首先确认父节点选中与否
-        let key = this.$refs.tree.getCurrentKey()
-
         if(!key) {
           this.$message('无选中节点，请单击节点后编辑')
           return
         }
 
-        if(this.appending) { // 在添加状态
-          let appendingForm = this.$refs.appendingForm.model
+        if(this.area.appendStatus) { // 添加状态为true
+          let form = this.$refs.appendingForm.model
 
           // 首先新建一个区域节点
-          let Area = this.$api.SDK.Object.extend('Area');
-          let area = new Area()
-          area.set('name', appendingForm.name)
-          area.set('path', null)
-          area.save().then(area => {
+          let cloudArea = new  this.$api.SDK.Object.extend('Area')()
+          cloudArea.set('name', form.name)
+          cloudArea.set('path', [])
+          cloudArea.save().then(area => {
             let newChild = {
               id: area.id,
               name: area.get('name'),
               children: []
             }
-            this.$refs.tree.append(newChild, key)
-            // 上传树形图结构
-            this.$options.methods.syncAreaTree(that)
-            this.appending = false // 将添加状态还原
+            // 更新前端属性结构，使用element-ui中tree的方法
+            that.$refs.tree.append(newChild, key)
+            that.commit('changeAreaStatus')
           })
           .catch(error => {
             console.log(error)
@@ -222,8 +241,9 @@
             return
           })
         } else {
-          // 设置为添加状态
-          this.appending = true
+          // 设置append为true
+          this.$store.commit('changeAreaStatus')
+          this.$store.commit('changeAreaStatus2')
         }
       },
 
@@ -231,9 +251,11 @@
         let that = this
         // 通过组件定义的方法获取当前选中的节点
         let key = this.$refs.tree.getCurrentKey()
+        console.log(key)
+        // 编辑节点表单
 
         if(this.areaTree === null) {
-          this.$message('区域树图初始化，初始化节点后可以操作')
+          this.$message('区域树图未初始化，点击添加按钮初始化区域树图')
           return
         }
 
@@ -242,33 +264,59 @@
           return
         }
 
-        if(this.area.editStatus) { // 如果在节点编辑状态
+        if(!this.area.editStatus) { // 点击编辑按钮后，发现edit=false，将其改为true
+          this.$store.commit('setAreaEdit')
           let form = this.$refs.editingForm.model
 
-          let cloudArea = this.$api.SDK.Object.createWithoutData('Area', key)
+          // edit=true后，前端对应的表单显示在DOM中，按钮文字更改为“提交”
+          // let cloudArea = this.$api.SDK.Object.createWithoutData('Area', key)
 
-          // 由于创建的是空对象，所以功能并没有完成
-          // if(area.get('name') === form.name) {
+          // // 由于创建的是空对象，所以功能并没有完成
+          // if(this.area.attributes.name === form.name) {
           //   console.log('内容无修改，不上传')
-          //   return false // 如果名字没有修改，就不上传了
+          //   return false // 如果名字没有修改，数据无需更新及上传
           // }
 
-          // 修改属性
-          cloudArea.set('name', form.name)
-          cloudArea.set('path', this.area.attributes.path)
-          // 保存到云端
-          cloudArea.save()
-          .then(() => {
-            console.log(`${area.get('path').length}数组长度`)
-            // 上传树形图结构
-            this.$options.methods.syncAreaTree(that)
-            this.$store.commit('setAreaEdit')
-            this.$store.dispatch('saveArea', area)
-          });
-        } else {
-          // 设置为编辑状态
-          this.$store.commit('setAreaEdit')
+          // // 修改属性
+          // cloudArea.set('name', form.name)
+          // cloudArea.set('path', this.area.attributes.path)
+          // // 保存到云端
+          // cloudArea.save()
+          // .then(() => {
+          //   console.log(`${area.get('path').length}数组长度`)
+          //   // 上传树形图结构
+          //   this.$options.methods.syncAreaTree(that)
+          //   this.$store.commit('setAreaEdit')
+          //   this.$store.dispatch('saveArea', area)
+          // });
+
         }
+
+        // if(this.area.editStatus) { // 如果在节点编辑状态
+        //   let cloudArea = this.$api.SDK.Object.createWithoutData('Area', key)
+
+        //   // 由于创建的是空对象，所以功能并没有完成
+        //   // if(area.get('name') === form.name) {
+        //   //   console.log('内容无修改，不上传')
+        //   //   return false // 如果名字没有修改，就不上传了
+        //   // }
+
+        //   // 修改属性
+        //   cloudArea.set('name', form.name)
+        //   cloudArea.set('path', this.area.attributes.path)
+        //   // 保存到云端
+        //   cloudArea.save()
+        //   .then(() => {
+        //     console.log(`${area.get('path').length}数组长度`)
+        //     // 上传树形图结构
+        //     this.$options.methods.syncAreaTree(that)
+        //     this.$store.commit('setAreaEdit')
+        //     this.$store.dispatch('saveArea', area)
+        //   });
+        // } else {
+        //   // 设置为编辑状态
+        //   this.$store.commit('setAreaEdit')
+        // }
       },
 
       removeNode() {
@@ -324,8 +372,7 @@
       },
 
       cancelAllStatus() {
-        this.$store.commit('setAreaEdit')
-        this.appending = false;
+        this.$store.commit('setAreaInit')
       }
     },
 

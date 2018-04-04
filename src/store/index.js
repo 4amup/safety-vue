@@ -22,12 +22,16 @@ const store = new Vuex.Store({
     setArea (state, area) {
       state.area  = {...state.area, ...area}
     },
-    setAreaPath(state, path) {
-      state.area.attributes.path = path
-    },
     setAreaEdit (state) {
-      state.area.editStatus = !state.area.editStatus
+      state.area.editStatus = true
     },
+    setAreaAppend (state) {
+      state.area.appendStatus = true
+    },
+    setAreaInit(state) {
+      state.area.editStatus = false
+      state.area.appendStatus = false
+    }
   },
   actions: {
     login(context, user) {
@@ -35,9 +39,6 @@ const store = new Vuex.Store({
     },
     exit(context) {
       context.commit('setUser', null)
-    },
-    getArea(context, area) {
-      context.commit('setArea', area)
     },
     saveArea(context, area) {
       context.commit('setArea', area)
