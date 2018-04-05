@@ -1,8 +1,5 @@
 <template>
-  <div>
-    <p>当前{{area.editStatus ? '为' : '不处于'}}编辑状态</p>
-    <div id="map-container"></div>
-  </div>
+  <div id="map-container"></div>
 </template>
 
 <script>
@@ -64,7 +61,7 @@ export default {
     // }
   },
   watch: {
-    'area.id': 'hignlightCurrentArea', // area的id改变时，高亮当前节点
+    'area.id': 'hignlightCurrentPolygon', // area的id改变时，高亮当前节点
     'area.editStatus': 'editAreaPolygon', // 引用编辑方法
     'area.appendStatus': 'appendStatusAreaPolygon', // 引用编辑方法
     'areas.length': 'renderPolygon', // 添加新的区域后，重新渲染图
@@ -122,91 +119,47 @@ export default {
       });
     },
     // 高亮当前节点
-    hignlightCurrentArea() {
-
+    hignlightCurrentPolygon() {
       let that = this // 暂存this对象
-      // 遍历查找当前polygon，通过id
-      if(!this.area.id) {
-        return
-      } else {
-        this.overlayGroup.eachOverlay(function(overlay, index, collections) {
-          if(overlay.getExtData().id === that.area.id) {
-            this.currentPolygon = overlay
-            // 然后将多边形高亮
-            overlay.setOptions({
-              fillColor: '#12355b'
-            })
-            that.currentPolygon = overlay //将当前多边形同步至data中
-          } else {
-            // 恢复原来颜色
-            overlay.setOptions({
-              fillColor: '#1791fc'
-            })
-          }
-        })
-      }
+      // 根据id遍历查找当前polygon，通过id
+      this.overlayGroup.eachOverlay(function(overlay, index, collections) {
+        if(overlay.getExtData().id === that.area.id) {
+          this.currentPolygon = overlay
+          // 然后将多边形高亮
+          overlay.setOptions({
+            fillColor: '#12355b'
+          })
+          that.currentPolygon = overlay //将当前多边形同步至data中
+        } else {
+          // 恢复原来颜色
+          overlay.setOptions({
+            fillColor: '#1791fc'
+          })
+        }
+      })
     },
 
     // 编辑路径数据
     editAreaPolygon() {
       let that = this // 暂存this
-      // 添加绘画polygon和编辑polygon实例
-      let polylineEditor
-      // let polylineEditor = new AMap.PolyEditor(map, this.currentPolygon);
-      let mouseTool = new AMap.MouseTool(map) //在地图中添加MouseTool插件
-
-      let drawOver = AMap.event.addListener(mouseTool,'draw',function(e){ //监听画完事件
-        // 新建一个polygon，加入 overlayGroup
-        let polygon = new AMap.Polygon({
-          path: e.obj.getPath(),//设置多边形边界路径
-          strokeColor: "#FF33FF", //线颜色
-          strokeOpacity: 0.2, //线透明度
-          strokeWeight: 2,    //线宽
-          fillColor: "#1791fc", //填充色
-          fillOpacity: 0.35,//填充透明度
-          extData: { //测试数据，将来要从服务端获取
-            id: that.area.id,
-            name: that.area.attributes.name
-          }
-        });
-
-        // 格式化路径数据
-        let path = polygon.getPath().map((v) => [v.O, v.P])
-        that.area.attributes.path = path
-        // 改变当前区域数据
-        that.$store.commit('setArea', area)
-        that.overlayGroup.addOverlay(polygon)
-        that.currentPolygon = polygon
-        mouseTool.close(true) // 画完后清除多边形
-        // 需要将这个数据传回父模板
-        // 准备采用vuex来将数据在不同组件中间共享
-        // 返回特定的路径属性就可以
-        // 参考leancloud链接https://leancloud.cn/docs/leanstorage_guide-swift.html#hash-916037211
-      })
+      // 编辑polygon实例
+      let polylineEditor = new AMap.PolyEditor(map, this.currentPolygon);
 
       if(this.area.editStatus) {
-        // 如果当前节点路径是有的，直接进入编辑模式
-        if(this.area.attributes.path) {
-          map.setMapStyle('amap://styles/blue')
-          this.polylineEditor = new AMap.PolyEditor(map, this.currentPolygon);
-          this.polylineEditor.open();
-          // 添加结束事件监听
-          // AMap.event.addListener(this.polylineEditor, 'end', function(type, target) {
-          //   let path = target.getPath().map((v) => [v.O, v.P])
-          //   // 改变当前区域数据
-          //   this.$store.commit('setAreaPath', path)
-          // })
-        } else {
-          // 如果没有路径，直接新建路径
-          map.setMapStyle('amap://styles/blue')
-          map.plugin(mouseTool)
-          mouseTool.polygon() //打开新建工具
-        }
+        map.setMapStyle('amap://styles/blue') // 地图编辑模式下，地图底色改为蓝色
+        polylineEditor.open();
+        // 添加结束事件监听
+        AMap.event.addListener(polylineEditor, 'end', function(type, target) {
+          console.log(target)
+          let path = target.getPath().map((v) => [v.O, v.P])
+          console.log(path)
+          // 改变当前区域数据
+          this.area.path = path
+          this.$store.commit('setArea', area)
+        })
       } else {
         map.setMapStyle('amap://styles/grey')
-        if(this.polylineEditor) {
-          this.polylineEditor.close()
-        }
+        polylineEditor.close()
       }
     },
     appendAreaPolygon() {
