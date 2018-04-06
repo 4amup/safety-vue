@@ -54,9 +54,13 @@
         </el-form-item>
       </el-form>
 
-      <el-button :disabled="(area.appendStatus || area.editStatus)" @click="editNode">编辑</el-button>
+      <!-- <el-button :disabled="(area.appendStatus || area.editStatus)" @click="editNode">编辑</el-button>
       <el-button :disabled="(area.appendStatus || area.editStatus)" @click="appendNode">添加</el-button>
       <el-button :disabled="(area.appendStatus || area.editStatus) || !currentNodeData.id" @click="removeNode">删除</el-button>
+      <el-button :disabled="!(area.appendStatus || area.editStatus)" @click="cancelAllStatus">取消</el-button> -->
+      <el-button :disabled="currentNodeData.id===''" @click="editNode">编辑</el-button>
+      <el-button :disabled="currentNodeData.id===''" @click="appendNode">添加</el-button>
+      <el-button :disabled="currentNodeData.id===''" @click="removeNode">删除</el-button>
       <el-button :disabled="!(area.appendStatus || area.editStatus)" @click="cancelAllStatus">取消</el-button>
     </div>
 
@@ -195,6 +199,7 @@
 
         // 修改属性
         area.set('name', this.currentNodeData.name)
+        console.log('看看路径同步过来了没有', this.area.path)
         area.set('path', this.area.path)
         // 保存到云端
         return area;
@@ -225,6 +230,7 @@
           this.$refs.tree.append(newChild, this.key) // 更新前端属性结构，使用element-ui中tree的方法
           let message =  `区域${area.get('name')}上传成功`;
           this.$message({message, type: 'success'})
+          // this.$refs.tree.setCurrentKey(area.id) // 将新添加节点设为当前节点
         })
         .then(() => {
           this.syncAreaTree()
