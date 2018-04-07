@@ -128,14 +128,17 @@ export default {
       let that = this // 暂存this对象
 
       // 如果当前区域没有路径数据，不执行该函数
-      if(!this.area.path) return
+      if(!this.area.path) {
+        this.currentPolygon = null
+        return false
+      }
 
       // 根据id遍历查找当前polygon，通过id
       overlayGroup.eachOverlay(function(overlay, index, collections) {
         if(overlay.getExtData().id === that.area.id) {
           // 然后将多边形高亮
           overlay.setOptions({
-            fillColor: '#12355b'
+            fillColor: '#fcc413'
           })
           that.currentPolygon = overlay //将当前多边形同步至当前组件data中
         } else {
@@ -203,7 +206,7 @@ export default {
           // 格式化路径数据
           let path = polygon.getPath().map((v) => [v.O, v.P])
           // 改变当前区域数据
-          that.overlayGroup.addOverlay(polygon)
+          overlayGroup.addOverlay(polygon)
           that.area.path = path
           that.$store.commit('setArea', that.area)
           that.currentPolygon = polygon
