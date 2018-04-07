@@ -127,6 +127,11 @@ export default {
     hignlightCurrentPolygon() {
       let that = this // 暂存this对象
 
+      // 进来先恢复原色
+      overlayGroup.setOptions({
+        fillColor: '#1791fc'
+      })
+
       // 如果当前区域没有路径数据，不执行该函数
       if(!this.area.path) {
         this.currentPolygon = null
@@ -138,18 +143,26 @@ export default {
         if(overlay.getExtData().id === that.area.id) {
           // 然后将多边形高亮
           overlay.setOptions({
-            fillColor: '#fcc413'
+            fillColor: '#fcc413' // 高亮色
           })
           that.currentPolygon = overlay //将当前多边形同步至当前组件data中
-        } else {
-          // 恢复原来颜色
-          overlay.setOptions({
-            fillColor: '#1791fc'
-          })
         }
       })
     },
 
+    // 移除当前多边形
+    removePolygon() {
+      overlayGroup.removeOverlay(this.currentPolygon)
+    },
+
+    // 关闭编辑状态
+    closePolygonEditor() {
+      //
+      if(this.polylineEditor) {
+        this.polylineEditor.close()
+        console.log('存在编辑，关闭当前编辑')
+      }
+    },
     // 编辑路径数据
     editAreaPolygon() {
       let that = this // 暂存this
@@ -161,11 +174,7 @@ export default {
         map.setMapStyle('amap://styles/blue') // 地图编辑模式下，地图底色改为蓝色
       } else {
         map.setMapStyle('amap://styles/grey') // 地图编辑模式下，地图底色改回灰色
-        if(this.polylineEditor) {
-          this.polylineEditor.close()
-          console.log('存在编辑，关闭当前编辑')
-        }
-        return
+        return false
       }
 
       // 两种情况，路径是空的，就创建；路径有的，就编辑
@@ -195,7 +204,7 @@ export default {
             strokeColor: "#FF33FF", //线颜色
             strokeOpacity: 0.2, //线透明度
             strokeWeight: 2,    //线宽
-            fillColor: "#1791fc", //填充色
+            fillColor: "#fcc413", //填充色
             fillOpacity: 0.35,//填充透明度
             extData: { //测试数据，将来要从服务端获取
               id: that.area.id,

@@ -16,7 +16,8 @@ const store = new Vuex.Store({
       state.user = user
     },
     setArea (state, area) {
-      state.area = {...state.area, ...area}
+      // state.area = {...state.area, ...area}
+      state.area = area
     },
     setAreaEdit (state) {
       state.area.editStatus = true
@@ -38,6 +39,9 @@ const store = new Vuex.Store({
     },
     saveArea(context, area) {
       context.commit('setArea', area)
+    },
+    deleteArea(context) {
+      context.commit('setArea', null)
     }
   }
 })

@@ -67,7 +67,7 @@
     <div class="map">
       <h2>区域图</h2>
       <p>当前{{area.editStatus ? '为' : '不处于'}}编辑状态</p>
-      <a-map></a-map>
+      <a-map ref="map"></a-map>
     </div>
   </div>
 </template>
@@ -187,23 +187,45 @@
         //
       },
 
+      // 查area
+      getArea(id) {
+        let q = new this.$api.SDK.Query('Area')
+        q.get(id).then(area => {
+          area = area.toJSON() // 保存干净的对象
+          area.id = area.objectId //添加一个更加方便的id属性
+          area.editStatus = false
+          area.appendStatus = false
+          this.$store.dispatch('saveArea', area); // 将area保存到Vuex 中
+        })
+        .catch(error => {
+          console.log(error)
+        })
+      },
+      // 创建area
       createArea() {
         let area = new this.$api.SDK.Object('Area');
         area.set('name', this.appendForm.name)
         area.set('path', null)
         return area;
       },
+      // 修改area
       setArea() {
         let id = this.area.id
         let area = this.$api.SDK.Object.createWithoutData('Area', id)
 
         // 修改属性
         area.set('name', this.currentNodeData.name)
-        console.log('看看路径同步过来了没有', this.area.path)
         area.set('path', this.area.path)
         // 保存到云端
         return area;
       },
+      // 删除area
+      destroyArea() {
+        let id = this.area.id
+        let area = this.$api.SDK.Object.createWithoutData('Area', id);
+        return area
+      },
+
       editSave(area) {
         area.save()
         .then((area) => {
@@ -240,10 +262,28 @@
         })
       },
 
+      destroySave(area) {
+         area.destroy().then(function (success) {
+          // 删除成功
+          console.log(`id为${key}的节点云端删除成功`)
+        })
+        .then(() => {
+          // 在前端删除对象
+          this.$refs.tree.remove(this.key)
+          // 重新上传树图
+          this.syncAreaTree()
+          console.log(`id为${key}的节点前端删除成功`)
+        })
+        .catch(error => {
+          console.log(error, '删除失败')
+        })
+      },
+
       // 提交编辑节点
       submit() {
         if(this.area.editStatus) {
           this.$store.commit('setAreaInit') // 结束编辑状态
+          this.$refs.map.closePolygonEditor() //调用map子组件的方法，先关闭polygonEditor对象
           let area = this.setArea()
           this.editSave(area)
           this.syncAreaTree()
@@ -257,8 +297,6 @@
 
       appendNode() {
         this.key = this.$refs.tree.getCurrentKey()
-        // let that = this
-
 
         // 首先确认父节点选中与否
         if(!this.key) {
@@ -273,12 +311,6 @@
       editNode() {
         // 通过组件定义的方法获取当前选中的节点
         this.key = this.$refs.tree.getCurrentKey()
-        // 编辑节点表单
-
-        // if(this.areaTree === null) {
-        //   this.$message('区域树图未初始化，点击添加按钮初始化区域树图')
-        //   return
-        // }
 
         if(!this.key) {
           this.$message('无选中节点，请单击节点后编辑')
@@ -298,43 +330,48 @@
           return
         }
 
-        // 遍历获取删除节点，研究遍历算法
-        function traverseTree(node, id) {
-          if (node.id === id) {
-            return node;
-          }
+        // let area = this.destroyArea()
+        // this.destroySave(area)
+        // this.$store.commit('setArea', null)
 
-          if(node.children && node.children.length>0) {
-            for (let n of node.children) {
-              console.log(node.name)
-              return traverseTree(n);
-            }
-          }
-        }
-        function traverseTree(node) {
-          if(!node) {
-            return
-          }
+        // // 遍历获取删除节点，研究遍历算法
+        // function traverseTree(node, id) {
+        //   if (node.id === id) {
+        //     return node;
+        //   }
 
-          if(node.children && node.children.length>0) {
-            for (let node of node.children) {
-              console.log(node.name)
-              return traverseTree(node);
-            }
-          }
-        }
+        //   if(node.children && node.children.length>0) {
+        //     for (let n of node.children) {
+        //       console.log(node.name)
+        //       return traverseTree(n);
+        //     }
+        //   }
+        // }
+        // function traverseTree(node) {
+        //   if(!node) {
+        //     return
+        //   }
 
-        let area = this.$api.SDK.Object.createWithoutData('Area', this.key);
+        //   if(node.children && node.children.length>0) {
+        //     for (let node of node.children) {
+        //       console.log(node.name)
+        //       return traverseTree(node);
+        //     }
+        //   }
+        // }
+
+        let area = this.$api.SDK.Object.createWithoutData('Area', this.area.id);
         area.destroy().then(function (success) {
           // 删除成功
-          console.log(`id为${key}的节点云端删除成功`)
+          console.log(`id为${that.area.id}的节点云端删除成功`)
+          that.$refs.tree.remove(that.area.id)
+          // 重新上传树图
+          that.syncAreaTree()
         })
         .then(() => {
           // 在前端删除对象
-          this.$refs.tree.remove(this.key)
-          // 重新上传树图
-          this.$options.methods.syncAreaTree(that)
-          console.log(`id为${key}的节点前端删除成功`)
+          // that.$store.dispatch('deleteArea')
+          that.$refs.map.removePolygon()
         })
         .catch(error => {
           console.log(error, '删除失败')
@@ -343,6 +380,7 @@
 
       cancelAllStatus() {
         this.$store.commit('setAreaInit')
+        this.$refs.map.closePolygonEditor() //调用map子组件的方法，先关闭polygonEditor对象
       }
     },
 
