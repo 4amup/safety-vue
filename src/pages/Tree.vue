@@ -161,18 +161,6 @@
         }
       },
 
-      getArea(id) {
-        let q = new this.$api.SDK.Query('Area')
-        q.get(id).then(area => {
-          area = area.toJSON() // 保存干净的对象
-          area.id = area.objectId //添加一个更加方便的id属性
-          this.$store.dispatch('saveArea', area); // 将area保存到Vuex 中
-        })
-        .catch(error => {
-          console.log(error)
-        })
-      },
-
       // 当前选中的节点，钩子函数
       handleNodeClick(data, node, tree) {
         // 共三个参数，依次为：传递给 data 属性的数组中该节点所对应的对象、节点对应的 Node、节点组件本身。
@@ -219,12 +207,6 @@
         // 保存到云端
         return area;
       },
-      // 删除area
-      destroyArea() {
-        let id = this.area.id
-        let area = this.$api.SDK.Object.createWithoutData('Area', id);
-        return area
-      },
 
       editSave(area) {
         area.save()
@@ -259,23 +241,6 @@
         })
         .catch(error => {
           console.error(error)
-        })
-      },
-
-      destroySave(area) {
-         area.destroy().then(function (success) {
-          // 删除成功
-          console.log(`id为${key}的节点云端删除成功`)
-        })
-        .then(() => {
-          // 在前端删除对象
-          this.$refs.tree.remove(this.key)
-          // 重新上传树图
-          this.syncAreaTree()
-          console.log(`id为${key}的节点前端删除成功`)
-        })
-        .catch(error => {
-          console.log(error, '删除失败')
         })
       },
 
@@ -329,36 +294,6 @@
           this.$message('无选中节点，请单击节点后编辑')
           return
         }
-
-        // let area = this.destroyArea()
-        // this.destroySave(area)
-        // this.$store.commit('setArea', null)
-
-        // // 遍历获取删除节点，研究遍历算法
-        // function traverseTree(node, id) {
-        //   if (node.id === id) {
-        //     return node;
-        //   }
-
-        //   if(node.children && node.children.length>0) {
-        //     for (let n of node.children) {
-        //       console.log(node.name)
-        //       return traverseTree(n);
-        //     }
-        //   }
-        // }
-        // function traverseTree(node) {
-        //   if(!node) {
-        //     return
-        //   }
-
-        //   if(node.children && node.children.length>0) {
-        //     for (let node of node.children) {
-        //       console.log(node.name)
-        //       return traverseTree(node);
-        //     }
-        //   }
-        // }
 
         let area = this.$api.SDK.Object.createWithoutData('Area', this.area.id);
         area.destroy().then(function (success) {

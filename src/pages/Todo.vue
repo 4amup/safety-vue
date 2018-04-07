@@ -89,69 +89,69 @@
 <script>
   export default {
     data() {
-      let data = [{
-        "id": 1,
-        "label": "一厂房",
-        "children": [{
-          "id": 4,
-          "label": "一跨",
-          "children": [{
-            "id": 9,
-            "label": "装焊区"
-          }, {
-            "id": 10,
-            "label": "倒角区"
-          }]
-        }]
-      }, {
-        "id": 2,
-        "label": "二厂房",
-        "children": [{
-          "id": 5,
-          "label": "二跨",
-          "children": [{
-            "id": 9,
-            "label": "装焊区"
-          }, {
-            "id": 10,
-            "label": "倒角区"
-          }]
-        }, {
-          "id": 6,
-          "label": "三跨",
-          "children": [{
-            "id": 9,
-            "label": "机加区"
-          }, {
-            "id": 10,
-            "label": "倒角区"
-          }]
-        }]
-      }, {
-        "id": 3,
-        "label": "六厂房",
-        "children": [{
-          "id": 7,
-          "label": "一跨",
-          "children": [{
-            "id": 9,
-            "label": "装焊区"
-          }, {
-            "id": 10,
-            "label": "倒角区"
-          }]
-        }, {
-          "id": 8,
-          "label": "二跨",
-          "children": [{
-            "id": 9,
-            "label": "装焊区"
-          }, {
-            "id": 10,
-            "label": "倒角区"
-          }]
-        }]
-      }];
+      // let data = [{
+      //   "id": 1,
+      //   "label": "一厂房",
+      //   "children": [{
+      //     "id": 4,
+      //     "label": "一跨",
+      //     "children": [{
+      //       "id": 9,
+      //       "label": "装焊区"
+      //     }, {
+      //       "id": 10,
+      //       "label": "倒角区"
+      //     }]
+      //   }]
+      // }, {
+      //   "id": 2,
+      //   "label": "二厂房",
+      //   "children": [{
+      //     "id": 5,
+      //     "label": "二跨",
+      //     "children": [{
+      //       "id": 9,
+      //       "label": "装焊区"
+      //     }, {
+      //       "id": 10,
+      //       "label": "倒角区"
+      //     }]
+      //   }, {
+      //     "id": 6,
+      //     "label": "三跨",
+      //     "children": [{
+      //       "id": 9,
+      //       "label": "机加区"
+      //     }, {
+      //       "id": 10,
+      //       "label": "倒角区"
+      //     }]
+      //   }]
+      // }, {
+      //   "id": 3,
+      //   "label": "六厂房",
+      //   "children": [{
+      //     "id": 7,
+      //     "label": "一跨",
+      //     "children": [{
+      //       "id": 9,
+      //       "label": "装焊区"
+      //     }, {
+      //       "id": 10,
+      //       "label": "倒角区"
+      //     }]
+      //   }, {
+      //     "id": 8,
+      //     "label": "二跨",
+      //     "children": [{
+      //       "id": 9,
+      //       "label": "装焊区"
+      //     }, {
+      //       "id": 10,
+      //       "label": "倒角区"
+      //     }]
+      //   }]
+      // }];
       let validateImagesUrl = (rule, value, callback) => {
         if (this.fileList.length === 0) {
           callback(new Error('请上传图片'));
@@ -180,10 +180,10 @@
           //   { validator: validateImagesUrl, trigger: 'change' }
           // ],
         },
-        options: JSON.parse(JSON.stringify(data)),
+        options: [],
         props: {
-          value: 'label',
-          label: 'label',
+          value: 'name',
+          label: 'name',
           children: 'children'
         },
         selected: null,
@@ -191,7 +191,28 @@
         reformFieldList: [] // 整改图片列表
       };
     },
+    mounted() {
+      this.getOptions()
+    },
     methods: {
+      getOptions() {
+        let q = new this.$api.SDK.Query('AreaTree')
+        q.find().then(trees => {
+          if(trees.length===0) {
+            throw Error('云端无数据')
+          } else if (trees.length!==1) {
+            throw Error('云端数据错误')
+          } else {
+            let tree = trees[0].get('data')
+            let factory = tree[0]
+            let workshops = factory.children
+            this.options = workshops
+          }
+        }).catch(error => {
+          // 错误处理
+          console.log(error)
+        })
+      },
       handleUpload() {
         let files = this.$refs.upload.uploadFiles
         files = files.filter(file => {return file.status === 'ready'})
