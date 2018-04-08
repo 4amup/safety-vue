@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <el-form ref="form"
+      class="form"
       :rules="rules"
       :model="form"
       label-position="left"
@@ -14,20 +15,6 @@
           active-text="已整改"
           inactive-text="未整改">
         </el-switch>
-      </el-form-item>
-
-      <el-form-item label="位置" prop="location">
-        <el-cascader
-          v-model="form.location"
-          placeholder="试试搜索：管二"
-          :separator='`/`'
-          :value="selected"
-          :options="options"
-          :props="props"
-          filterable
-          clearable
-          change-on-select>
-        </el-cascader>
       </el-form-item>
 
       <el-form-item label="问题图片" prop="imagesUrl">
@@ -45,6 +32,24 @@
           :limit='3'>
           <i class="el-icon-plus"></i>
         </el-upload>
+      </el-form-item>
+
+      <el-form-item label="位置" prop="location">
+        <el-cascader
+          v-model="form.location"
+          placeholder="试试搜索：管二"
+          :separator='`/`'
+          :value="selected"
+          :options="options"
+          :props="props"
+          filterable
+          clearable
+          change-on-select>
+        </el-cascader>
+      </el-form-item>
+
+      <el-form-item label="精确位置" prop="whereCreated">
+        <map-point id="map-point"></map-point>
       </el-form-item>
 
       <el-form-item label="整改图片" v-if="form.status">
@@ -87,71 +92,9 @@
   </div>
 </template>
 <script>
+  import MapPoint from '@/components/MapPoint'
   export default {
     data() {
-      // let data = [{
-      //   "id": 1,
-      //   "label": "一厂房",
-      //   "children": [{
-      //     "id": 4,
-      //     "label": "一跨",
-      //     "children": [{
-      //       "id": 9,
-      //       "label": "装焊区"
-      //     }, {
-      //       "id": 10,
-      //       "label": "倒角区"
-      //     }]
-      //   }]
-      // }, {
-      //   "id": 2,
-      //   "label": "二厂房",
-      //   "children": [{
-      //     "id": 5,
-      //     "label": "二跨",
-      //     "children": [{
-      //       "id": 9,
-      //       "label": "装焊区"
-      //     }, {
-      //       "id": 10,
-      //       "label": "倒角区"
-      //     }]
-      //   }, {
-      //     "id": 6,
-      //     "label": "三跨",
-      //     "children": [{
-      //       "id": 9,
-      //       "label": "机加区"
-      //     }, {
-      //       "id": 10,
-      //       "label": "倒角区"
-      //     }]
-      //   }]
-      // }, {
-      //   "id": 3,
-      //   "label": "六厂房",
-      //   "children": [{
-      //     "id": 7,
-      //     "label": "一跨",
-      //     "children": [{
-      //       "id": 9,
-      //       "label": "装焊区"
-      //     }, {
-      //       "id": 10,
-      //       "label": "倒角区"
-      //     }]
-      //   }, {
-      //     "id": 8,
-      //     "label": "二跨",
-      //     "children": [{
-      //       "id": 9,
-      //       "label": "装焊区"
-      //     }, {
-      //       "id": 10,
-      //       "label": "倒角区"
-      //     }]
-      //   }]
-      // }];
       let validateImagesUrl = (rule, value, callback) => {
         if (this.fileList.length === 0) {
           callback(new Error('请上传图片'));
@@ -190,6 +133,9 @@
         fileList: [], // 问题图片列表
         reformFieldList: [] // 整改图片列表
       };
+    },
+    components: {
+      MapPoint
     },
     mounted() {
       this.getOptions()
@@ -294,8 +240,8 @@
   }
 </script>
 
-<style>
-  .todo-uploader .el-upload {
+<style scoped>
+  /* .todo-uploader .el-upload {
     border: 1px dashed #d9d9d9;
     width: 50px;
     height: 50px;
@@ -317,6 +263,14 @@
   }
   .el-cascader--mini {
     width: 100%;
+  } */
+  .form {
+    padding: 5% 20%;
   }
+
+  #map-point {
+    height: 200px;
+  }
+
 </style>
 
