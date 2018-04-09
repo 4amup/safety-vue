@@ -92,6 +92,7 @@
   </div>
 </template>
 <script>
+  import AMap from '@/components/AMap'
   import MapPoint from '@/components/MapPoint'
   export default {
     data() {
@@ -135,7 +136,8 @@
       };
     },
     components: {
-      MapPoint
+      MapPoint,
+      AMap
     },
     mounted() {
       this.getOptions()

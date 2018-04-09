@@ -1,11 +1,5 @@
 <template>
-  <div>
-    <div id="map-container"></div>
-    <!-- <div class="button-group"> -->
-      <el-button type="success" round>编辑完成</el-button>
-    <!-- </div> -->
-  </div>
-
+  <div id="map-container"></div>
 </template>
 
 <script>
@@ -68,7 +62,6 @@ export default {
   watch: {
     'area.id': 'hignlightCurrentPolygon', // area的id改变时，高亮当前节点
     'area.editStatus': 'editAreaPolygon', // 引用编辑方法
-    // 'area.appendStatus': 'appendStatusAreaPolygon', // 引用编辑方法
     'areas.length': 'renderPolygon', // 添加新的区域后，重新渲染图
   },
   methods: {
