@@ -34,12 +34,14 @@
         </el-upload>
       </el-form-item>
 
+      <p>{{ selectedPolygon }}</p>
       <el-form-item label="位置" prop="location">
         <el-cascader
           v-model="form.location"
           placeholder="试试搜索：管二"
           :separator='`/`'
-          :value="selected"
+          value="selected"
+          id='ids'
           :options="options"
           :props="props"
           filterable
@@ -115,7 +117,7 @@
           location: [],
           imagesUrl: [], // 图片路径数组
           content: '', // 描述的文字或语音地址的链接
-
+          locationName: [],
           reformContent: '', //整改的描述或语音链接地址
           rImagesUrl: [],
 
@@ -134,11 +136,11 @@
         },
         options: [],
         props: {
-          value: 'name',
+          value:'id',
           label: 'name',
           children: 'children'
         },
-        selected: null,
+        selected: [],
         fileList: [], // 问题图片列表
         reformFieldList: [] // 整改图片列表
       };
@@ -149,7 +151,10 @@
         if(l) {
           return this.form.location[l-1]
         }
-      }
+      },
+    },
+    watch: {
+      'form.location': 'formLocation'
     },
     components: {
       MapPoint,
@@ -159,6 +164,19 @@
       this.getOptions()
     },
     methods: {
+      formLocation() {
+        let nameArray = []
+        this.form.location.map(value => {
+          let query = new this.$api.SDK.Query('Area')
+          query.get(value).then(area => {
+            nameArray.push(area.get('name'))
+          })
+          .catch(error => {
+            console.log(error)
+          })
+        })
+        this.form.locationName = nameArray
+      },
       getOptions() {
         let q = new this.$api.SDK.Query('AreaTree')
         q.find().then(trees => {
