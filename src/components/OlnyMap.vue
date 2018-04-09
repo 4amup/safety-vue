@@ -1,10 +1,12 @@
 <template>
-  <div id="map-point"></div>
+  <div id="map-container"></div>
 </template>
+
 
 <script>
 import { mapState, mapMutations, mapActions } from 'vuex'
-let map // 添加地图公共变量
+let map
+
 let overlayGroup // 添加覆盖物的集合，统一改变属性
 
 export default {
@@ -14,7 +16,7 @@ export default {
       mapOptions: {
         resizeEnable: true,
         overlayGroup: null,
-        zoom:20,
+        zoom:17,
         showIndoorMap: false,
         zooms: [16, 20],
         mapStyle: 'amap://styles/grey',
@@ -63,7 +65,10 @@ export default {
     // 初始化地图
     initMap() {
       map = new AMap.Map('map-point', this.mapOptions);
+
       // 限制地图显示区域
+      AMap.Bounds()
+      map.setLimitBounds(map.getBounds())
     },
     // 根据数据渲染多边形
     renderPolygon() {
@@ -88,7 +93,6 @@ export default {
       })
 
       overlayGroup.setMap(map) // 将所有覆盖物显示在地图上
-      // map.setFitView()
       overlayGroup.on("mouseover", function(e) { // 添加显示覆盖物的属性的事件监听
         let area = e.target
         // console.log('正在监听覆盖物上的鼠标移过事件', area.getExtData().name)
@@ -100,9 +104,3 @@ export default {
 }
 </script>
 
-<style>
-#map-container {
-  height: calc(100vh - 62px);
-  width:100%;
-}
-</style>

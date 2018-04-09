@@ -3,20 +3,9 @@
 </template>
 
 <script>
-import AMap from 'AMap'
 import { mapState, mapMutations, mapActions } from 'vuex'
-
-// 共享一个map实例
-let map = new AMap.Map('map-container', {
-  resizeEnable: true,
-  zoom:17,
-  showIndoorMap: false,
-  zooms: [16, 20],
-  mapStyle: 'amap://styles/grey',
-  center: [126.678551,45.715461]
-});
-
-let overlayGroup
+let map // 共享一个map实例
+let overlayGroup // 共享一个覆盖物集合
 
 export default {
   data() {
@@ -28,7 +17,7 @@ export default {
       mapOptions: {
         resizeEnable: true,
         overlayGroup: null,
-        zoom:17,
+        zoom:18,
         showIndoorMap: false,
         zooms: [16, 20],
         mapStyle: 'amap://styles/grey',
@@ -80,10 +69,9 @@ export default {
     // 初始化地图
     initMap() {
       map = new AMap.Map('map-container', this.mapOptions);
-
       // 限制地图显示区域
-      AMap.Bounds()
-      map.setLimitBounds(map.getBounds())
+      // AMap.Bounds()
+      // map.setLimitBounds(map.getBounds())
     },
     // 根据数据渲染多边形
     renderPolygon() {
@@ -109,6 +97,7 @@ export default {
       })
 
       overlayGroup.setMap(map) // 将所有覆盖物显示在地图上
+      map.setFitView() // setFitView(overlayList:Array),根据地图上添加的覆盖物分布情况，自动缩放地图到合适的视野级别，参数overlayList默认为当前地图上添加的所有覆盖物图层
       overlayGroup.on("mouseover", function(e) { // 添加显示覆盖物的属性的事件监听
         let area = e.target
         // console.log('正在监听覆盖物上的鼠标移过事件', area.getExtData().name)
@@ -138,6 +127,7 @@ export default {
           overlay.setOptions({
             fillColor: '#fcc413' // 高亮色
           })
+          map.setFitView(overlay) // setFitView(overlayList:Array),根据地图上添加的覆盖物分布情况，自动缩放地图到合适的视野级别，参数overlayList默认为当前地图上添加的所有覆盖物图层
           that.currentPolygon = overlay //将当前多边形同步至当前组件data中
         }
       })

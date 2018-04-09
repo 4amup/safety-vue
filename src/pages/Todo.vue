@@ -50,6 +50,13 @@
 
       <el-form-item label="精确位置" prop="whereCreated">
         <map-point id="map-point"></map-point>
+        <el-button type="text" @click="dialogMapVisible = true">打开地图精确标注</el-button>
+        <el-dialog
+          title="标注精确位置"
+          width="70%"
+          :visible.sync="dialogMapVisible">
+          <map-point></map-point>
+        </el-dialog>
       </el-form-item>
 
       <el-form-item label="整改图片" v-if="form.status">
@@ -102,6 +109,7 @@
         }
       };
       return {
+        dialogMapVisible: false,
         form: {
           status: false,
           location: [],
@@ -134,6 +142,14 @@
         fileList: [], // 问题图片列表
         reformFieldList: [] // 整改图片列表
       };
+    },
+    computed: {
+      selectedPolygon: function() {
+        let l = this.form.location.length
+        if(l) {
+          return this.form.location[l-1]
+        }
+      }
     },
     components: {
       MapPoint,
