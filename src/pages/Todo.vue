@@ -48,7 +48,7 @@
       </el-form-item>
 
       <el-form-item label="精确位置" prop="whereCreated">
-        <map-point id="map-point" :areaId="selectedPolygon"></map-point>
+        <map-point ref='map' id="map-point" :areaId="selectedPolygon"></map-point>
         <el-button type="text" @click="dialogMapVisible = true">打开地图精确标注</el-button>
         <el-dialog
           title="标注精确位置"
@@ -115,6 +115,7 @@
           imagesUrl: [], // 图片路径数组
           content: '', // 描述的文字或语音地址的链接
           locationName: null,
+          whereCreated: null,
           reformContent: '', //整改的描述或语音链接地址
           rImagesUrl: [],
 
@@ -232,6 +233,9 @@
 
       // 表单相关
       submitForm(formName) {
+        let LngLat = this.$refs.map.getGeo()
+        LngLat = [LngLat.getLat(), LngLat.getLng()]
+        this.form.whereCreated = new this.$api.SDK.GeoPoint(LngLat);
         this.$refs[formName].validate((valid) => {
           if (valid) {
             // 保存到云端的逻辑
@@ -240,6 +244,7 @@
             todo.set('content', this.form.content);
             todo.set('status', this.form.status);
             todo.set('location', this.form.locationName);
+            todo.set('whereCreated', this.form.whereCreated);
             todo.set('imagesUrl', this.form.imagesUrl);
             todo.save().then(todo => {
               console.log('objectId:', todo.id)

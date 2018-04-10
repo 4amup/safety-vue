@@ -126,10 +126,6 @@ export default {
       })
 
       overlayGroup.setMap(map) // 将所有覆盖物显示在地图上
-      overlayGroup.on('click', function() {
-        that.areaId = this.getExtData().id
-        console.log(this.getExtData().name)
-      })
       map.setFitView()
       overlayGroup.on("mouseover", function(e) { // 添加显示覆盖物的属性的事件监听
         let area = e.target
@@ -138,6 +134,10 @@ export default {
         // 将来鼠标滑过显示当前覆盖物的名称，方便用户选择
       });
     },
+
+    getGeo() {
+      return marker.getPosition()
+    }
   }
 }
 </script>
