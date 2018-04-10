@@ -34,14 +34,11 @@
         </el-upload>
       </el-form-item>
 
-      <p>{{ selectedPolygon }}</p>
       <el-form-item label="位置" prop="location">
         <el-cascader
           v-model="form.location"
           placeholder="试试搜索：管二"
           :separator='`/`'
-          value="selected"
-          id='ids'
           :options="options"
           :props="props"
           filterable
@@ -51,7 +48,7 @@
       </el-form-item>
 
       <el-form-item label="精确位置" prop="whereCreated">
-        <map-point id="map-point"></map-point>
+        <map-point id="map-point" :areaId="selectedPolygon"></map-point>
         <el-button type="text" @click="dialogMapVisible = true">打开地图精确标注</el-button>
         <el-dialog
           title="标注精确位置"
@@ -117,11 +114,12 @@
           location: [],
           imagesUrl: [], // 图片路径数组
           content: '', // 描述的文字或语音地址的链接
-          locationName: [],
+          locationName: null,
           reformContent: '', //整改的描述或语音链接地址
           rImagesUrl: [],
 
         },
+        lastAreaId: '',
         rules: {
           content: [
             { type: 'string', required: true, message: '请描述事项情况', trigger: 'blur'}
@@ -146,15 +144,15 @@
       };
     },
     computed: {
-      selectedPolygon: function() {
+      selectedPolygon() {
         let l = this.form.location.length
         if(l) {
           return this.form.location[l-1]
         }
       },
     },
-    watch: {
-      'form.location': 'formLocation'
+    updated() { // 模板更新时，将地址字符串更新
+      this.locationToString()
     },
     components: {
       MapPoint,
@@ -164,18 +162,9 @@
       this.getOptions()
     },
     methods: {
-      formLocation() {
-        let nameArray = []
-        this.form.location.map(value => {
-          let query = new this.$api.SDK.Query('Area')
-          query.get(value).then(area => {
-            nameArray.push(area.get('name'))
-          })
-          .catch(error => {
-            console.log(error)
-          })
-        })
-        this.form.locationName = nameArray
+      locationToString() {
+        let inputValue = document.querySelector('#app > div > form > div.el-form-item > div > span > div > input').getAttribute('value');
+        this.form.locationName = inputValue
       },
       getOptions() {
         let q = new this.$api.SDK.Query('AreaTree')
@@ -250,7 +239,7 @@
             let todo = new Todo()
             todo.set('content', this.form.content);
             todo.set('status', this.form.status);
-            todo.set('location', this.form.location);
+            todo.set('location', this.form.locationName);
             todo.set('imagesUrl', this.form.imagesUrl);
             todo.save().then(todo => {
               console.log('objectId:', todo.id)

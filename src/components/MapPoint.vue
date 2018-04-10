@@ -24,6 +24,7 @@ export default {
       // colors: ["#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c"],
     }
   },
+  props: ['areaId'],
   mounted () {
     this.getAreas()
     this.initMap()
@@ -46,8 +47,29 @@ export default {
   },
   watch: {
     'areas.length': 'renderPolygon', // 添加新的区域后，重新渲染图
+    'areaId': 'hignlightCurrentPolygon'
   },
   methods: {
+    hignlightCurrentPolygon() {
+      let that = this // 暂存this对象
+
+      // 进来先恢复原色
+      overlayGroup.setOptions({
+        fillColor: '#1791fc'
+      })
+
+      // 根据id遍历查找当前polygon，通过id
+      overlayGroup.eachOverlay(function(overlay, index, collections) {
+        if(overlay.getExtData().id === that.areaId) {
+          // 然后将多边形高亮
+          overlay.setOptions({
+            fillColor: '#fcc413' // 高亮色
+          })
+          map.setFitView(overlay) // setFitView(overlayList:Array),根据地图上添加的覆盖物分布情况，自动缩放地图到合适的视野级别，参数overlayList默认为当前地图上添加的所有覆盖物图层
+          that.currentPolygon = overlay //将当前多边形同步至当前组件data中
+        }
+      })
+    },
     // 从服务端获取区域对象的数据
     getAreas() {
       let that = this
@@ -88,7 +110,7 @@ export default {
       })
 
       overlayGroup.setMap(map) // 将所有覆盖物显示在地图上
-      // map.setFitView()
+      map.setFitView()
       overlayGroup.on("mouseover", function(e) { // 添加显示覆盖物的属性的事件监听
         let area = e.target
         // console.log('正在监听覆盖物上的鼠标移过事件', area.getExtData().name)
