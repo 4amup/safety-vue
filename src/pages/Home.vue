@@ -7,14 +7,27 @@
     <div class="list">
       <el-card class="box-card" v-for="todo in todos" :key="todo.id">
         <div slot="header" class="clearfix">
-          <span>卡片名称</span>
-          <el-button style="float: right; padding: 3px 0" type="text">操作按钮</el-button>
+          <span>用户在</span>
+          <span>{{(nowTime - todo.createdAt)%1000%60}}分钟前</span>
+          <span>提交了问题</span>
         </div>
-        <div class="text item">
+        <div class="content">
           {{todo.get('content')}}
+          <li v-for="url in todo.get('imagesUrl')" :key="url" class="imageItem">
+            <img :src=url>
+          </li>
         </div>
         <div class="text item">
           {{todo.get('location')}}
+        </div>
+
+        <div class="bottom">
+          <span>底部</span>
+          <el-button-group>
+            <el-button type="primary" size="mini" icon="el-icon-edit"></el-button>
+            <el-button type="primary" size="mini" icon="el-icon-share"></el-button>
+            <el-button type="primary" size="mini" icon="el-icon-delete"></el-button>
+          </el-button-group>
         </div>
       </el-card>
     </div>
@@ -46,6 +59,7 @@ export default {
     return {
       msg: 'Welcome to Your Vue.js App',
       todos: [],
+      nowTime: new Date()
     }
   }
 }
@@ -70,5 +84,11 @@ a {
 .list {
   width: 40%;
   padding: 0 5%;
+}
+.operator {
+  background-color: bisque;
+}
+.list .imageItem li{
+  height: 40px;
 }
 </style>
