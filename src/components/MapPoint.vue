@@ -6,6 +6,7 @@
 import { mapState, mapMutations, mapActions } from 'vuex'
 let map // 添加地图公共变量
 let overlayGroup // 添加覆盖物的集合，统一改变属性
+let marker
 
 export default {
   data() {
@@ -20,6 +21,7 @@ export default {
         mapStyle: 'amap://styles/grey',
         center: [126.678551,45.715461]
       },
+      idOfArea: this.areaId
       // 距离很近的最底层area，显示相近色区分，或者直接按照颜色分类
       // colors: ["#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c"],
     }
@@ -43,11 +45,12 @@ export default {
           "path": path
         }
       })
-    }
+    },
   },
   watch: {
     'areas.length': 'renderPolygon', // 添加新的区域后，重新渲染图
-    'areaId': 'hignlightCurrentPolygon'
+    // 'idOfArea': 'hignlightCurrentPolygon',
+    'areaId': 'hignlightCurrentPolygon',
   },
   methods: {
     hignlightCurrentPolygon() {
@@ -84,17 +87,30 @@ export default {
     },
     // 初始化地图
     initMap() {
+      let position
       map = new AMap.Map('map-point', this.mapOptions);
+      marker = new AMap.Marker({
+        cursor: 'move'
+      })
+      marker.setMap(map)
+      map.on('click', function(e) {
+        position = e.lnglat
+        map.setCenter(position)
+        marker.setPosition(position)
+        marker.setMap(map)
+      })
+
       // 限制地图显示区域
     },
     // 根据数据渲染多边形
     renderPolygon() {
-      console.log('开始渲染多边形组')
+      let that = this
       overlayGroup = new AMap.OverlayGroup() // 添加覆盖物的集合，统一改变属性
       this.areasFormart.forEach(function(value, index) { // 实例化覆盖物，并添加到集合中
         if(!value.path) return // 如果区域的节点路径不存在，就不渲染
         // 将来根据不同的层级，显示不同的填充色和线色
         let polygon = new AMap.Polygon({
+          bubble: true,
           path: value.path,//设置多边形边界路径
           strokeColor: "#FF33FF", //线颜色
           strokeOpacity: 0.2, //线透明度
@@ -110,6 +126,10 @@ export default {
       })
 
       overlayGroup.setMap(map) // 将所有覆盖物显示在地图上
+      overlayGroup.on('click', function() {
+        that.areaId = this.getExtData().id
+        console.log(this.getExtData().name)
+      })
       map.setFitView()
       overlayGroup.on("mouseover", function(e) { // 添加显示覆盖物的属性的事件监听
         let area = e.target
