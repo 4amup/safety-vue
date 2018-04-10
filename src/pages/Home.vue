@@ -1,7 +1,24 @@
 <template>
   <div class="hello">
     <h1>{{ msg }}</h1>
+
     <p>当前云端的todo数量是{{ todos.length }}个</p>
+
+    <div class="list">
+      <el-card class="box-card" v-for="todo in todos" :key="todo.id">
+        <div slot="header" class="clearfix">
+          <span>卡片名称</span>
+          <el-button style="float: right; padding: 3px 0" type="text">操作按钮</el-button>
+        </div>
+        <div class="text item">
+          {{todo.get('content')}}
+        </div>
+        <div class="text item">
+          {{todo.get('location')}}
+        </div>
+      </el-card>
+    </div>
+
   </div>
 </template>
 
@@ -49,5 +66,9 @@ li {
 }
 a {
   color: #42b983;
+}
+.list {
+  width: 40%;
+  padding: 0 5%;
 }
 </style>
