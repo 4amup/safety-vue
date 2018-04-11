@@ -7,15 +7,17 @@
     <div class="list">
       <el-card class="box-card" v-for="todo in todos" :key="todo.id">
         <div slot="header" class="clearfix">
-          <span>用户在</span>
-          <span>{{(nowTime - todo.createdAt)%1000%60}}分钟前</span>
+          <span>用户于</span>
+          <span>{{formatDate(todo.createdAt)}}</span>
           <span>提交了问题</span>
         </div>
         <div class="content">
           {{todo.get('content')}}
-          <li v-for="url in todo.get('imagesUrl')" :key="url" class="imageItem">
+        </div>
+        <div class="imgs">
+          <div v-for="url in todo.get('imagesUrl')" :key="url" class="imageItem">
             <img :src=url>
-          </li>
+          </div>
         </div>
         <div class="text item">
           {{todo.get('location')}}
@@ -36,11 +38,9 @@
 </template>
 
 <script>
-// import TestUpload from '@/components/TestUpload'
 export default {
   name: 'Home',
   components: {
-    // TestUpload
   },
   mounted() {
     let query = new this.$api.SDK.Query('Todo');
@@ -60,6 +60,26 @@ export default {
       msg: 'Welcome to Your Vue.js App',
       todos: [],
       nowTime: new Date()
+    }
+  },
+  methods: {
+    toTimestamp(dateObj) {
+      Math.round(dateObj.getTime()/1000)
+    },
+    // 格式化时间为yy-mm-dd hh:mm:ss
+    formatDate(dateObj) {
+      let year = dateObj.getFullYear();
+      let month = dateObj.getMonth() + 1;
+      month = month < 10 ? '0' + month : month;
+      let date = dateObj.getDate();
+      date = date < 10 ? '0' + date : date;
+      let hour = dateObj.getHours();
+      hour = hour < 10 ? '0' + hour : hour;
+      let minute = dateObj.getMinutes();
+      minute = minute < 10 ? '0' + minute : minute;
+      let second = dateObj.getSeconds();
+      second = second < 10 ? '0' + second : second;
+      return year + "-" + month + "-" + date + " " + hour + ":" + minute + ":" + second;
     }
   }
 }
@@ -88,7 +108,13 @@ a {
 .operator {
   background-color: bisque;
 }
-.list .imageItem li{
+.imgs {
+  background: burlywood;
+  display: flex;
+  flex-direction: row;
+  height: 50px;
+}
+.imgs .imgItem img{
   height: 40px;
 }
 </style>

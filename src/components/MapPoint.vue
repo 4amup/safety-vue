@@ -142,9 +142,9 @@ export default {
 }
 </script>
 
-<style>
-#map-container {
-  height: calc(100vh - 62px);
-  width:100%;
+<style scoped>
+#map-point {
+  height: 300px;
+  width:70%;
 }
 </style>

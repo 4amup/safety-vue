@@ -48,13 +48,13 @@
       </el-form-item>
 
       <el-form-item label="精确位置" prop="whereCreated">
-        <map-point ref='map' id="map-point" :areaId="selectedPolygon"></map-point>
+        <map-point ref='map' :areaId="selectedPolygon"></map-point>
         <el-button type="text" @click="dialogMapVisible = true">打开地图精确标注</el-button>
         <el-dialog
           title="标注精确位置"
           width="70%"
           :visible.sync="dialogMapVisible">
-          <map-point></map-point>
+          <only-map class="only-map"></only-map>
         </el-dialog>
       </el-form-item>
 
@@ -100,6 +100,7 @@
 <script>
   import AMap from '@/components/AMap'
   import MapPoint from '@/components/MapPoint'
+  import OnlyMap from '@/components/OnlyMap'
   export default {
     data() {
       let validateImagesUrl = (rule, value, callback) => {
@@ -157,7 +158,8 @@
     },
     components: {
       MapPoint,
-      AMap
+      AMap,
+      OnlyMap
     },
     mounted() {
       this.getOptions()
@@ -298,9 +300,13 @@
     padding: 5% 20%;
   }
 
-  #map-point {
+  /* #map-point {
     height: 200px;
   }
+
+  #only-map {
+    height: 600px;
+  } */
 
 </style>
 

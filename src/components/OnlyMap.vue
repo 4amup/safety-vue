@@ -1,5 +1,5 @@
 <template>
-  <div id="map-container"></div>
+  <div id="only-map"></div>
 </template>
 
 
@@ -10,6 +10,7 @@ let map
 let overlayGroup // 添加覆盖物的集合，统一改变属性
 
 export default {
+  name: 'OnlyMap',
   data() {
     return {
       areas: [], //这个数据也需要使用vuex共享
@@ -64,7 +65,7 @@ export default {
     },
     // 初始化地图
     initMap() {
-      map = new AMap.Map('map-point', this.mapOptions);
+      map = new AMap.Map('only-map', this.mapOptions);
 
       // 限制地图显示区域
       AMap.Bounds()
@@ -104,3 +105,8 @@ export default {
 }
 </script>
 
+<style scoped>
+#only-map{
+  height: 500px;
+}
+</style>
