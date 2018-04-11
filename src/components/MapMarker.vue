@@ -1,32 +1,30 @@
 <template>
-  <div id="only-map"></div>
+  <div id="map-marker"></div>
 </template>
-
 
 <script>
 import { mapState, mapMutations, mapActions } from 'vuex'
-let map
-
+let map // 添加地图公共变量
 let overlayGroup // 添加覆盖物的集合，统一改变属性
-
+let markerOverlayGroup // 点覆盖物集合
 export default {
-  name: 'OnlyMap',
   data() {
     return {
       areas: [], //这个数据也需要使用vuex共享
       mapOptions: {
         resizeEnable: true,
         overlayGroup: null,
-        zoom:17,
+        zoom:20,
         showIndoorMap: false,
         zooms: [16, 20],
         mapStyle: 'amap://styles/grey',
         center: [126.678551,45.715461]
       },
-      // 距离很近的最底层area，显示相近色区分，或者直接按照颜色分类
-      // colors: ["#c6dbef", "#9ecae1", "#6baed6", "#3182bd", "#08519c"],
     }
   },
+  props: [
+    'todos'
+  ],
   mounted () {
     this.getAreas()
     this.initMap()
@@ -45,10 +43,20 @@ export default {
           "path": path
         }
       })
+    },
+    todosFormart: function() {
+      return this.todos.map((value, index) => {
+        return {
+          "id": value.id,
+          "content": value.attributes.content,
+          "whereCreated": [value.attributes.whereCreated.longitude, value.attributes.whereCreated.latitude]
+        }
+      })
     }
   },
   watch: {
     'areas.length': 'renderPolygon', // 添加新的区域后，重新渲染图
+    'todosFormart.length': 'renderMarker'
   },
   methods: {
     // 从服务端获取区域对象的数据
@@ -65,20 +73,18 @@ export default {
     },
     // 初始化地图
     initMap() {
-      map = new AMap.Map('only-map', this.mapOptions);
-
-      // 限制地图显示区域
-      AMap.Bounds()
-      map.setLimitBounds(map.getBounds())
+      let position
+      map = new AMap.Map('map-marker', this.mapOptions);
     },
     // 根据数据渲染多边形
     renderPolygon() {
-      console.log('开始渲染多边形组')
+      let that = this
       overlayGroup = new AMap.OverlayGroup() // 添加覆盖物的集合，统一改变属性
       this.areasFormart.forEach(function(value, index) { // 实例化覆盖物，并添加到集合中
         if(!value.path) return // 如果区域的节点路径不存在，就不渲染
         // 将来根据不同的层级，显示不同的填充色和线色
         let polygon = new AMap.Polygon({
+          bubble: true,
           path: value.path,//设置多边形边界路径
           strokeColor: "#FF33FF", //线颜色
           strokeOpacity: 0.2, //线透明度
@@ -94,6 +100,7 @@ export default {
       })
 
       overlayGroup.setMap(map) // 将所有覆盖物显示在地图上
+      map.setFitView()
       overlayGroup.on("mouseover", function(e) { // 添加显示覆盖物的属性的事件监听
         let area = e.target
         // console.log('正在监听覆盖物上的鼠标移过事件', area.getExtData().name)
@@ -101,12 +108,33 @@ export default {
         // 将来鼠标滑过显示当前覆盖物的名称，方便用户选择
       });
     },
+    renderMarker() {
+      let that = this
+      markerOverlayGroup = new AMap.OverlayGroup() // 添加覆盖物的集合，统一改变属性
+      this.todosFormart.forEach(function(value, index) { // 实例化覆盖物，并添加到集合中
+        // 将来根据不同的层级，显示不同的填充色和线色
+        let marker = new AMap.Marker({
+          position: value.whereCreated,//设置多边形边界路径
+          extData: { //测试数据，将来要从服务端获取
+            id: value.id,
+          }
+        });
+        markerOverlayGroup.addOverlay(marker)
+      })
+
+      markerOverlayGroup.setMap(map) // 将所有覆盖物显示在地图上
+    }
+
+    // getGeo() {
+    //   return marker.getPosition()
+    // }
   }
 }
 </script>
 
 <style scoped>
-#only-map{
-  height: calc(100vh - 280px);;
+#map-marker {
+  height: calc(100vh - 62px);
+  width:100%;
 }
 </style>

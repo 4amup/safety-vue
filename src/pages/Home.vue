@@ -1,9 +1,6 @@
 <template>
-  <div class="hello">
-    <h1>{{ msg }}</h1>
-
-    <p>当前云端的todo数量是{{ todos.length }}个</p>
-
+  <div class="container">
+    <!-- <p>当前云端的todo数量是{{ todos.length }}个</p> -->
     <div class="list">
       <el-card class="box-card" v-for="todo in todos" :key="todo.id">
         <div slot="header" class="clearfix">
@@ -34,13 +31,19 @@
       </el-card>
     </div>
 
+    <div class="map">
+      <map-marker :todos="todos"></map-marker>
+    </div>
   </div>
 </template>
 
 <script>
+import MapMarker from "@/components/MapMarker"
+
 export default {
   name: 'Home',
   components: {
+    MapMarker
   },
   mounted() {
     let query = new this.$api.SDK.Query('Todo');
@@ -101,9 +104,16 @@ li {
 a {
   color: #42b983;
 }
+.container {
+  display: flex;
+  flex-direction: row;
+}
 .list {
   width: 40%;
   padding: 0 5%;
+}
+.map {
+  width: 60%;
 }
 .operator {
   background-color: bisque;
