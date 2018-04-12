@@ -108,6 +108,7 @@ a {
   display: flex;
   flex-direction: row;
   padding: 5px 100px;
+  background: #f6f6f6;
 }
 .list {
   width: 55%;
@@ -119,8 +120,10 @@ a {
   /* border-bottom: #999 1px solid; */
   padding: 10px;
   border-radius: 5px;
+  /* box-shadow: 2px 2px 5px #888888; */
+  box-shadow: 5px #888888;
   margin: 5px;
-  background: bisque;
+  background: #fff;
 }
 .todo-item:hover {
   color: black
