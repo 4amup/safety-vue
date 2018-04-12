@@ -98,6 +98,7 @@
   </div>
 </template>
 <script>
+  import { mapState, mapMutations, mapActions } from 'vuex'
   import AMap from '@/components/AMap'
   import MapPoint from '@/components/MapPoint'
   import OnlyMap from '@/components/OnlyMap'
@@ -152,6 +153,7 @@
           return this.form.location[l-1]
         }
       },
+      ...mapState(['user'])
     },
     updated() { // 模板更新时，将地址字符串更新
       this.locationToString()
@@ -245,6 +247,7 @@
             let todo = new Todo()
             todo.set('content', this.form.content);
             todo.set('status', this.form.status);
+            todo.set('creator', this.user);
             todo.set('location', this.form.locationName);
             todo.set('whereCreated', this.form.whereCreated);
             todo.set('imagesUrl', this.form.imagesUrl);

@@ -4,7 +4,7 @@
     <div class="list">
       <div class="todo-item" v-for="todo in todos" :key="todo.id">
         <div>
-          <span>用户于</span>
+          <span>{{'用户小叮当'}}于</span>
           <span>{{formatDate(todo.createdAt)}}</span>
           <span>提交了问题</span>
         </div>
