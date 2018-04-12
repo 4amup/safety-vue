@@ -35,7 +35,10 @@ export default new Router({
     {
       path: '/todo',
       name: 'Todo',
-      component: Todo
+      component: Todo,
+      meta: { // 如何测试一下meta值
+        needLogin: true
+      }
     },
     {
       path: '/signup',

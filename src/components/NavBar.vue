@@ -65,6 +65,7 @@ export default {
     ...mapActions(['exit']),
     heandleExit() {
       this.exit();
+      this.$api.SDK.User.logOut() // SDK 的退出
       this.$message.success('成功退出');
     },
     handleUpload() {
