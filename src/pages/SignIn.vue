@@ -1,7 +1,6 @@
 <template>
   <div class="container">
-    <h1>登录</h1>
-
+    <h2>欢迎登录</h2>
     <div class="from-panel">
       <el-form label-position="left" ref="form" label-width="80px" :rules="rules" :model="user" @keyup.native.enter="submitForm('form')">
         <el-form-item label="用户名" prop="name">
@@ -76,7 +75,6 @@ export default {
     },
     resetForm(formName) {
       this.$refs[formName].resetFields();
-      this.$message.success('重置成功！');
     }
   }
 };

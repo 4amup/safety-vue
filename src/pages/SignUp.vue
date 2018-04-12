@@ -1,22 +1,22 @@
 <template>
   <div class="container">
-    <h1>注册</h1>
-
+    <h2>欢迎注册</h2>
     <div class="from-panel">
-      <el-form label-position="left" ref="form" label-width="80px" :rules="rules" :model="user">
-        <el-form-item label="用户名" prop="name">
-          <el-input v-model="user.name"></el-input>
+      <el-form
+        label-position="left"
+        ref="form"
+        label-width="80px"
+        :rules="rules"
+        :model="user">
+        <el-form-item label="你的名字" prop="name">
+          <el-input v-model="user.name" placeholder="真实姓名或昵称"></el-input>
         </el-form-item>
-        <el-form-item label="邮件" prop="email">
-          <el-input v-model="user.email"></el-input>
+        <el-form-item label="邮箱" prop="email">
+          <el-input v-model="user.email" placeholder="邮箱"></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="pwd">
-          <el-input type="password" v-model="user.pwd"></el-input>
+          <el-input type="password" v-model="user.pwd" placeholder="不少于6位数的密码"></el-input>
         </el-form-item>
-        <el-form-item label="确认密码" prop="cpwd">
-          <el-input type="password" v-model="user.cpwd"></el-input>
-        </el-form-item>
-
         <div class="oprator">
           <el-button class="submit" type="primary" @click="submitForm('form')">提交</el-button>
           <el-button class="submit" @click="resetForm('form')">重置</el-button>
@@ -32,27 +32,6 @@ export default {
   name: 'signUp',
 
   data() {
-
-    var validatePass = (rule, value, callback) => {
-      if (value === '') {
-        callback(new Error('请输入密码'));
-      } else {
-        if (this.user.cpwd !== '') {
-          this.$refs.form.validateField('cpwd');
-        }
-        callback();
-      }
-    };
-    var validatePass2 = (rule, value, callback) => {
-      if (value === '') {
-        callback(new Error('请再次输入密码'));
-      } else if (value !== this.user.pwd) {
-        callback(new Error('两次输入密码不一致!'));
-      } else {
-        callback();
-      }
-    };
-
     return {
       user: {
         name: '',
@@ -63,19 +42,15 @@ export default {
       rules: {
         name: [
           { required: true, message: '请输入用户名', trigger: 'blur' },
-          { min: 3, max: 7, message: '长度在 3 到 7 个字符之间', trigger: 'blur' }
+          { min: 2, max: 7, message: '长度在 2 到 7 个字符之间', trigger: 'blur' }
         ],
         email: [
           { required: true, message: '请填入邮箱', trigger: 'blur' },
           { type: 'email', message: '必须是合法的邮箱格式', trigger: 'blur' }
         ],
         pwd: [
-          { required: true, message: '必须填写', trigger: 'blur' },
-          { validator: validatePass, trigger: 'blur' },
-        ],
-        cpwd: [
-          { required: true, message: '必须填写', trigger: 'blur' },
-          { validator: validatePass2, trigger: 'blur' },
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          { type: '', message: '必须设置密码', trigger: 'blur' },
         ]
       }
     };
@@ -106,7 +81,6 @@ export default {
     },
     resetForm(formName) {
       this.$refs[formName].resetFields();
-      this.$message.success('重置成功！');
     }
   }
 };

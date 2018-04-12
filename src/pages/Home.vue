@@ -49,8 +49,6 @@ export default {
     let query = new this.$api.SDK.Query('Todo');
     query.limit = 10 // 限制返回数量
     query.find().then(todos => {
-      console.log(todos)
-
       // 获取首页todos数据，未来配合or查询实现分页，或分类查询，或时间段查询
       this.todos  = todos
     })
@@ -60,7 +58,6 @@ export default {
   },
   data () {
     return {
-      msg: 'Welcome to Your Vue.js App',
       todos: [],
       nowTime: new Date()
     }
