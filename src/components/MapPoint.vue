@@ -144,7 +144,6 @@ export default {
 
 <style scoped>
 #map-point {
-  height: 300px;
-  width:70%;
+  height: 180px;
 }
 </style>

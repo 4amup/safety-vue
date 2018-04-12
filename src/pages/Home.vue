@@ -2,8 +2,8 @@
   <div class="container">
     <!-- <p>当前云端的todo数量是{{ todos.length }}个</p> -->
     <div class="list">
-      <el-card class="box-card" v-for="todo in todos" :key="todo.id">
-        <div slot="header" class="clearfix">
+      <div class="todo-item" v-for="todo in todos" :key="todo.id">
+        <div>
           <span>用户于</span>
           <span>{{formatDate(todo.createdAt)}}</span>
           <span>提交了问题</span>
@@ -11,24 +11,24 @@
         <div class="content">
           {{todo.get('content')}}
         </div>
-        <div class="imgs">
+        <!-- <div class="imgs">
           <div v-for="url in todo.get('imagesUrl')" :key="url" class="imageItem">
             <img :src=url>
           </div>
-        </div>
+        </div> -->
         <div class="text item">
           {{todo.get('location')}}
         </div>
 
         <div class="bottom">
-          <span>底部</span>
+          <span>bottom</span>
           <el-button-group>
             <el-button type="primary" size="mini" icon="el-icon-edit"></el-button>
             <el-button type="primary" size="mini" icon="el-icon-share"></el-button>
             <el-button type="primary" size="mini" icon="el-icon-delete"></el-button>
           </el-button-group>
         </div>
-      </el-card>
+      </div>
     </div>
 
     <div class="map">
@@ -107,17 +107,32 @@ a {
 .container {
   display: flex;
   flex-direction: row;
+  padding: 5px 100px;
 }
 .list {
-  width: 40%;
-  padding: 0 5%;
+  width: 55%;
+  /* padding: 0 5px 5px 5px; */
+}
+/* todo项目的样式文件 */
+.todo-item {
+  color: #999;
+  /* border-bottom: #999 1px solid; */
+  padding: 10px;
+  border-radius: 5px;
+  margin: 5px;
+  background: bisque;
+}
+.todo-item:hover {
+  color: black
 }
 .map {
-  width: 60%;
+  width: 45%;
+  padding: 5px;
+  border-radius: 5px;
 }
-.operator {
+/* .operator {
   background-color: bisque;
-}
+} */
 .imgs {
   background: burlywood;
   display: flex;

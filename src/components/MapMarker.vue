@@ -115,6 +115,7 @@ export default {
         // 将来根据不同的层级，显示不同的填充色和线色
         let marker = new AMap.Marker({
           position: value.whereCreated,//设置多边形边界路径
+          cursor: 'help',
           extData: { //测试数据，将来要从服务端获取
             id: value.id,
           }
@@ -134,7 +135,8 @@ export default {
 
 <style scoped>
 #map-marker {
-  height: calc(100vh - 62px);
+  height: calc(100vh - 110px);
   width:100%;
+  border-radius: 5px;
 }
 </style>
