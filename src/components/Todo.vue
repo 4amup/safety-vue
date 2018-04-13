@@ -1,10 +1,12 @@
 <template>
- <el-dialog
-    title="提交"
-    :visible.sync="dialogVisible"
-    width="50%"
-    center>
+  <div class="container">
+    <el-steps :active="0" simple>
+      <el-step title="发现" icon="el-icon-upload2"></el-step>
+      <el-step title="整改" icon="el-icon-date"></el-step>
+      <el-step title="整改完成" icon="el-icon-check"></el-step>
+    </el-steps>
     <el-form ref="form"
+      class="form"
       :rules="rules"
       :model="form"
       label-position="left"
@@ -18,20 +20,6 @@
           active-text="已整改"
           inactive-text="未整改">
         </el-switch>
-      </el-form-item>
-
-      <el-form-item label="位置" prop="location">
-        <el-cascader
-          v-model="form.location"
-          placeholder="试试搜索：管二"
-          :separator='`/`'
-          :value="selected"
-          :options="options"
-          :props="props"
-          filterable
-          clearable
-          change-on-select>
-        </el-cascader>
       </el-form-item>
 
       <el-form-item label="问题图片" prop="imagesUrl">
@@ -49,6 +37,30 @@
           :limit='3'>
           <i class="el-icon-plus"></i>
         </el-upload>
+      </el-form-item>
+
+      <el-form-item label="位置" prop="location">
+        <el-cascader
+          v-model="form.location"
+          placeholder="试试搜索：管二"
+          :separator='`/`'
+          :options="options"
+          :props="props"
+          filterable
+          clearable
+          change-on-select>
+        </el-cascader>
+      </el-form-item>
+
+      <el-form-item label="精确位置" prop="whereCreated">
+        <map-point ref='map' :areaId="selectedPolygon"></map-point>
+        <el-button type="text" @click="dialogMapVisible = true">打开地图精确标注</el-button>
+        <el-dialog
+          title="标注精确位置"
+          width="70%"
+          :visible.sync="dialogMapVisible">
+          <only-map class="only-map"></only-map>
+        </el-dialog>
       </el-form-item>
 
       <el-form-item label="整改图片" v-if="form.status">
@@ -88,90 +100,34 @@
         <el-button @click="handleUpload">传图</el-button>
       </el-form-item>
     </el-form>
- </el-dialog>
+  </div>
 </template>
 <script>
+  import { mapState, mapMutations, mapActions } from 'vuex'
+  import AMap from '@/components/AMap'
+  import MapPoint from '@/components/MapPoint'
+  import OnlyMap from '@/components/OnlyMap'
   export default {
     data() {
-      let data = [{
-        "id": 1,
-        "label": "一厂房",
-        "children": [{
-          "id": 4,
-          "label": "一跨",
-          "children": [{
-            "id": 9,
-            "label": "装焊区"
-          }, {
-            "id": 10,
-            "label": "倒角区"
-          }]
-        }]
-      }, {
-        "id": 2,
-        "label": "二厂房",
-        "children": [{
-          "id": 5,
-          "label": "二跨",
-          "children": [{
-            "id": 9,
-            "label": "装焊区"
-          }, {
-            "id": 10,
-            "label": "倒角区"
-          }]
-        }, {
-          "id": 6,
-          "label": "三跨",
-          "children": [{
-            "id": 9,
-            "label": "机加区"
-          }, {
-            "id": 10,
-            "label": "倒角区"
-          }]
-        }]
-      }, {
-        "id": 3,
-        "label": "六厂房",
-        "children": [{
-          "id": 7,
-          "label": "一跨",
-          "children": [{
-            "id": 9,
-            "label": "装焊区"
-          }, {
-            "id": 10,
-            "label": "倒角区"
-          }]
-        }, {
-          "id": 8,
-          "label": "二跨",
-          "children": [{
-            "id": 9,
-            "label": "装焊区"
-          }, {
-            "id": 10,
-            "label": "倒角区"
-          }]
-        }]
-      }];
       let validateImagesUrl = (rule, value, callback) => {
         if (this.fileList.length === 0) {
           callback(new Error('请上传图片'));
         }
       };
       return {
+        dialogMapVisible: false,
         form: {
           status: false,
           location: [],
           imagesUrl: [], // 图片路径数组
           content: '', // 描述的文字或语音地址的链接
-
+          locationName: null,
+          whereCreated: null,
           reformContent: '', //整改的描述或语音链接地址
           rImagesUrl: [],
 
         },
+        lastAreaId: '',
         rules: {
           content: [
             { type: 'string', required: true, message: '请描述事项情况', trigger: 'blur'}
@@ -184,19 +140,60 @@
           //   { validator: validateImagesUrl, trigger: 'change' }
           // ],
         },
-        dialogVisible: true,
-        options: JSON.parse(JSON.stringify(data)),
+        options: [],
         props: {
-          value: 'label',
-          label: 'label',
+          value:'id',
+          label: 'name',
           children: 'children'
         },
-        selected: null,
+        selected: [],
         fileList: [], // 问题图片列表
         reformFieldList: [] // 整改图片列表
       };
     },
+    computed: {
+      selectedPolygon() {
+        let l = this.form.location.length
+        if(l) {
+          return this.form.location[l-1]
+        }
+      },
+      ...mapState(['user'])
+    },
+    updated() { // 模板更新时，将地址字符串更新
+      this.locationToString()
+    },
+    components: {
+      MapPoint,
+      AMap,
+      OnlyMap
+    },
+    mounted() {
+      this.getOptions()
+    },
     methods: {
+      locationToString() {
+        let inputValue = document.querySelector('#app > div > form > div.el-form-item > div > span > div > input').getAttribute('value');
+        this.form.locationName = inputValue
+      },
+      getOptions() {
+        let q = new this.$api.SDK.Query('AreaTree')
+        q.find().then(trees => {
+          if(trees.length===0) {
+            throw Error('云端无数据')
+          } else if (trees.length!==1) {
+            throw Error('云端数据错误')
+          } else {
+            let tree = trees[0].get('data')
+            let factory = tree[0]
+            let workshops = factory.children
+            this.options = workshops
+          }
+        }).catch(error => {
+          // 错误处理
+          console.log(error)
+        })
+      },
       handleUpload() {
         let files = this.$refs.upload.uploadFiles
         files = files.filter(file => {return file.status === 'ready'})
@@ -219,11 +216,7 @@
             console.error(error);
           })
         })
-
       },
-      // upload(files,) {
-
-      // },
       handleChange(file, fileList) {
         this.fileList = fileList
       },
@@ -249,6 +242,9 @@
 
       // 表单相关
       submitForm(formName) {
+        let LngLat = this.$refs.map.getGeo()
+        LngLat = [LngLat.getLat(), LngLat.getLng()]
+        this.form.whereCreated = new this.$api.SDK.GeoPoint(LngLat);
         this.$refs[formName].validate((valid) => {
           if (valid) {
             // 保存到云端的逻辑
@@ -256,7 +252,9 @@
             let todo = new Todo()
             todo.set('content', this.form.content);
             todo.set('status', this.form.status);
-            todo.set('location', this.form.location);
+            todo.set('creator', this.user);
+            todo.set('location', this.form.locationName);
+            todo.set('whereCreated', this.form.whereCreated);
             todo.set('imagesUrl', this.form.imagesUrl);
             todo.save().then(todo => {
               console.log('objectId:', todo.id)
@@ -282,8 +280,8 @@
   }
 </script>
 
-<style>
-  .todo-uploader .el-upload {
+<style scoped>
+  /* .todo-uploader .el-upload {
     border: 1px dashed #d9d9d9;
     width: 50px;
     height: 50px;
@@ -305,6 +303,18 @@
   }
   .el-cascader--mini {
     width: 100%;
+  } */
+  .form {
+    padding: 5% 20%;
   }
+
+  /* #map-point {
+    height: 200px;
+  }
+
+  #only-map {
+    height: 600px;
+  } */
+
 </style>
 
