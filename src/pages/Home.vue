@@ -4,7 +4,7 @@
     <div class="list">
       <div class="todo-item" v-for="todo in todos" :key="todo.id">
         <div>
-          <span>{{'用户小叮当'}}于</span>
+          <span>{{todo.get('creator').id}} 于 </span>
           <span>{{formatDate(todo.createdAt)}}</span>
           <span>提交了问题</span>
         </div>
@@ -17,6 +17,7 @@
           </div>
         </div> -->
         <div class="text item">
+          <i class="el-icon-location"></i>
           {{todo.get('location')}}
         </div>
 

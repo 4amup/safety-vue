@@ -13,8 +13,7 @@ export default {
     NavBar
   },
   created () {
-    console.log(this.$store);
-    console.log(this.$api);
+    //
   }
 }
 </script>

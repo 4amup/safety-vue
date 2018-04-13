@@ -9,6 +9,7 @@
         :default-expanded-keys="[0]"
         node-key="id"
         accordion
+        default-expand-all
         :highlight-current="true"
         :check-strictly="false"
         :expand-on-click-node="false">
