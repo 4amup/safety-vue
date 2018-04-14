@@ -89,15 +89,17 @@ export default {
     initMap() {
       let position
       map = new AMap.Map('map-point', this.mapOptions);
-      marker = new AMap.Marker({
-        cursor: 'move'
-      })
-      marker.setMap(map)
       map.on('click', function(e) {
         position = e.lnglat
         map.setCenter(position)
+        if(!marker) {
+          marker = new AMap.Marker({
+            cursor: 'move',
+            position: position
+          })
+          marker.setMap(map)
+        }
         marker.setPosition(position)
-        marker.setMap(map)
       })
 
       // 限制地图显示区域
