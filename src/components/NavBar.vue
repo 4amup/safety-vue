@@ -27,8 +27,7 @@
       <el-submenu index="5" class="sign">
         <span slot="title"> {{ user.getUsername() }} </span>
         <el-menu-item index="5-1">个人中心</el-menu-item>
-        <el-menu-item index="5-2">发布文章</el-menu-item>
-        <el-menu-item index="5-3">消息</el-menu-item>
+        <el-menu-item index="5-2">我的收藏</el-menu-item>
         <el-menu-item index="5-3"  @click="heandleExit">注销</el-menu-item>
       </el-submenu>
       <el-menu-item index="6" class="sign notification"><i class="el-icon-bell"></i>提醒</el-menu-item>

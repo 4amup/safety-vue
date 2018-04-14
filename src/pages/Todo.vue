@@ -99,9 +99,23 @@
 
       </el-form-item>
         <el-form-item>
-        <el-button type="primary" @click="submitForm('form')">创建</el-button>
-        <el-button @click="resetForm('form')">重置</el-button>
-        <el-button @click="handleUpload">传图</el-button>
+
+        <el-tooltip class="item" effect="dark" content="我仅提交，相关责任人整改" placement="top">
+          <el-button type="primary" @click="submitForm('form')">仅提交</el-button>
+        </el-tooltip>
+
+        <el-tooltip class="item" effect="dark" content="重置表单内容，我来重新填写" placement="top">
+          <el-button @click="resetForm('form')">重置</el-button>
+        </el-tooltip>
+
+        <el-tooltip class="item" effect="dark" content="我发现的问题，我已自行整改结束" placement="top">
+          <el-button @click="resetForm('form')">提交且已整改</el-button>
+        </el-tooltip>
+
+        <el-tooltip class="item" effect="dark" content="暂时无法整改，我已列好整改计划" placement="top">
+          <el-button @click="resetForm('form')">提交整改计划</el-button>
+        </el-tooltip>
+
       </el-form-item>
     </el-form>
   </div>

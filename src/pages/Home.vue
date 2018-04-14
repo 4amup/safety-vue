@@ -4,7 +4,7 @@
     <div class="list">
       <div class="todo-item" v-for="todo in todos" :key="todo.id">
         <div>
-          <span>{{todo.get('creator').id}} 于 </span>
+          <span><a href="#">{{todo.get('creator').get('username')}}</a> 于 </span>
           <span>{{formatDate(todo.createdAt)}}</span>
           <span>提交了问题</span>
         </div>
@@ -26,7 +26,7 @@
           <el-button-group>
             <el-button type="primary" size="mini" icon="el-icon-edit"></el-button>
             <el-button type="primary" size="mini" icon="el-icon-share"></el-button>
-            <el-button type="primary" size="mini" icon="el-icon-delete"></el-button>
+            <el-button type="danger" size="mini" icon="el-icon-delete"></el-button>
           </el-button-group>
         </div>
       </div>
@@ -48,6 +48,7 @@ export default {
   },
   mounted() {
     let query = new this.$api.SDK.Query('Todo');
+    query.include('creator');
     query.limit = 10 // 限制返回数量
     query.find().then(todos => {
       // 获取首页todos数据，未来配合or查询实现分页，或分类查询，或时间段查询
