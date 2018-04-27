@@ -2,7 +2,7 @@
   <div class="container">
     <!-- <p>当前云端的todo数量是{{ todos.length }}个</p> -->
     <div class="list">
-      <div class="todo-item" v-for="todo in todos" :key="todo.id">
+      <div class="todo-item" v-for="todo in todos" :key="todo.id" @click="changeCurrentTodo">
         <div>
           <span><a href="#">{{todo.get('creator').get('username')}}</a> 于 </span>
           <span>{{formatDate(todo.createdAt)}}</span>
@@ -28,6 +28,7 @@
             <el-button type="primary" size="mini" icon="el-icon-share"></el-button>
             <el-button type="danger" size="mini" icon="el-icon-delete"></el-button>
           </el-button-group>
+          <router-link :to="{ name:'TodoShow', params: {id: todo.id} }">详情</router-link>
         </div>
       </div>
     </div>
@@ -60,6 +61,7 @@ export default {
   },
   data () {
     return {
+      currentTodoId: null,
       todos: [],
       nowTime: new Date()
     }
@@ -82,6 +84,10 @@ export default {
       let second = dateObj.getSeconds();
       second = second < 10 ? '0' + second : second;
       return year + "-" + month + "-" + date + " " + hour + ":" + minute + ":" + second;
+    },
+    changeCurrentTodo(event) {
+      // let node = event.target;s
+      // node.className = 'current-todo'
     }
   }
 }
@@ -126,6 +132,9 @@ a {
 }
 .todo-item:hover {
   color: black
+}
+.current-todo {
+  background:blanchedalmond;
 }
 .map {
   width: 45%;
