@@ -63,3 +63,13 @@
 |  checker     |    Pointer | 该事项的检查者，指向_User               |
 |  department  |    Pointer | 该事项属地单位                         |
 
+2. 重新设计tree的数据格式，每个层级一个数据行，现在的数据上传效率太慢了，area表，client、company、plant、
+
+|     字段     |    类型    |                   说明                   |
+|:------------:|:----------:|:----------------------------------------:|
+|      ID      |   auto     |  自动生成的id                            |
+|    name      |   String   |  区域的名称                                |
+|    type      |   String   |  区域类型，包括client、company、plant、stride、area等|
+|    path      |  Array     |  路径的经纬度坐标组   |
+
+至于树的结构的生成，采用后台的函数进行。
