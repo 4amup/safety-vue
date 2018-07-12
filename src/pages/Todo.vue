@@ -287,7 +287,8 @@
             todo.save().then(todo => {
               console.log('objectId:', todo.id)
               this.$message(`ID为${todo.id}的问题上传成功！`);
-              this.$router.push({path: '/'}) // 回到首页
+              // 跳转到刚提交的问题详情页
+              this.$router.push({path: '/todo/'+todo.id});
             })
             .catch(error => {
               console.error(error);
